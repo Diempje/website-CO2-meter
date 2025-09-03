@@ -1,6 +1,11 @@
 // Import van onze "ingrediënten"
 const express = require('express');
 const path = require('path');
+const axios = require('axios');
+const co2 = require('@tgwf/co2');
+
+// Laad environment variables
+require('dotenv').config();
 
 // Maak een Express app (onze webserver)
 const app = express();
@@ -30,8 +35,33 @@ app.post('/api/analyze', async (req, res) => {
         
         console.log('🌐 PageSpeed URL:', pageSpeedUrl.replace(apiKey, 'HIDDEN_KEY'));
         
+        // Eerste: Google PageSpeed call (deze werkt)
         const response = await axios.get(pageSpeedUrl);
         const data = response.data;
+        
+        // Dan pas groene hosting checken (als backup als het faalt)
+        let isGreenHosting = false;
+        let hostingProvider = 'Onbekend';
+        
+        try {
+            const domain = new URL(url).hostname;
+            console.log('🔍 Checken groene hosting voor:', domain);
+            
+            // Probeer verschillende API endpoints
+            const hostingResponse = await axios.get(`https://api.thegreenwebfoundation.org/greencheck/${domain}`, {
+                timeout: 5000 // 5 seconden timeout
+            });
+            
+            isGreenHosting = hostingResponse.data.green || false;
+            hostingProvider = hostingResponse.data.hostedby || hostingResponse.data.hosting_provider || 'Onbekend';
+            
+            console.log('🌱 Groene hosting:', isGreenHosting ? 'JA' : 'NEE');
+            console.log('🏢 Hosting provider:', hostingProvider);
+            
+        } catch (hostingError) {
+            console.log('⚠️ Groene hosting check mislukt, maar dat is oké:', hostingError.message);
+            // We gaan gewoon door zonder groene hosting info
+        }
         
         // Extracteer belangrijke metrics
         const metrics = data.lighthouseResult.audits;
@@ -39,6 +69,18 @@ app.post('/api/analyze', async (req, res) => {
         
         // Transfer size (in bytes)
         const transferSize = metrics['total-byte-weight']?.numericValue || 1000000; // fallback: 1MB
+        
+        // EXTRA DATA die Google ons geeft:
+        const imageOptimization = metrics['uses-optimized-images'];
+        const unusedCSS = metrics['unused-css-rules'];
+        const unusedJS = metrics['unused-javascript'];
+        const imageSize = metrics['total-byte-weight']?.details?.items?.find(item => 
+            item.label && item.label.includes('image')
+        ) || { transferSize: 0 };
+        
+        console.log('🖼️ Image optimization:', imageOptimization?.score);
+        console.log('🎨 Unused CSS:', unusedCSS?.details?.overallSavingsBytes || 0, 'bytes');
+        console.log('💻 Unused JS:', unusedJS?.details?.overallSavingsBytes || 0, 'bytes');
         
         // CO2 berekening met CO2.js
         const swd = new co2.co2({ model: "swd" }); // Sustainable Web Design model
@@ -48,7 +90,7 @@ app.post('/api/analyze', async (req, res) => {
         console.log('🌱 CO2 emission:', co2Emission, 'grams');
         
         // Performance score
-        const performanceScore = pageSpeedData.lighthouseResult.categories.performance.score * 100;
+        const performanceScore = data.lighthouseResult.categories.performance.score * 100;
         
         // Resultaat samenstellen
         const result = {
@@ -57,7 +99,21 @@ app.post('/api/analyze', async (req, res) => {
             transferSize: Math.round(transferSize / 1024), // KB
             performanceScore: Math.round(performanceScore),
             grade: getGrade(performanceScore),
-            comparison: getComparison(co2Emission)
+            comparison: getComparison(co2Emission),
+            // Groene hosting info
+            greenHosting: {
+                isGreen: isGreenHosting,
+                provider: hostingProvider,
+                impact: isGreenHosting ? 'Lagere CO2 impact door groene energie!' : 'Hogere CO2 impact - overweeg groene hosting'
+            },
+            // EXTRA OPTIMALISATIE INFO:
+            optimizations: {
+                imageOptimizationScore: imageOptimization?.score || 0,
+                unusedCSS: Math.round((unusedCSS?.details?.overallSavingsBytes || 0) / 1024), // KB
+                unusedJS: Math.round((unusedJS?.details?.overallSavingsBytes || 0) / 1024), // KB
+                canSave: Math.round(((unusedCSS?.details?.overallSavingsBytes || 0) + 
+                         (unusedJS?.details?.overallSavingsBytes || 0)) / 1024) // KB
+            }
         };
         
         res.json(result);
@@ -231,6 +287,6 @@ app.get('/', (req, res) => {
 
 // Start de server
 app.listen(PORT, () => {
-    console.log(`🚀 Website CO2 Meter draait op http://localhost:${PORT}`);
+    console.log(`🚀 Website CO2 Meter draait op poort ${PORT}`);
     console.log('💡 Druk Ctrl+C om te stoppen');
 });
