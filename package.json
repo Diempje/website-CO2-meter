@@ -16,3 +16,32 @@
     "express": "^5.1.0"
   }
 }
+{
+  "name": "website-co2-meter",
+  "version": "1.0.0",
+  "description": "Website CO2 uitstoot analyzer tool",
+  "main": "server.js",
+  "scripts": {
+    "build": "npm ci",
+    "serve": "node server.js",
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@tgwf/co2": "^0.15.0",
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "sustainability",
+    "co2",
+    "website-analysis",
+    "green-web"
+  ],
+  "author": "Jouw Naam",
+  "license": "MIT"
+}
