@@ -2,12 +2,12 @@
   "name": "website-co2-meter",
   "version": "1.0.0",
   "description": "Website CO2 uitstoot analyzer tool",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "build": "npm install",
-    "serve": "node server.js",
-    "start": "node server.js",
-    "dev": "node server.js"
+    "serve": "node index.js",
+    "start": "node index.js",
+    "dev": "node index.js"
   },
   "dependencies": {
     "@tgwf/co2": "^0.15.0",
@@ -22,10 +22,8 @@
     "sustainability",
     "co2",
     "website-analysis",
-    "green-web",
-    "Duurzaam webdesign",
-    "Duurzame websites"
+    "green-web"
   ],
-  "author": "Dimitri Dehouck",
+  "author": "Jouw Naam",
   "license": "MIT"
 }
