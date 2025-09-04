@@ -1,0 +1,480 @@
+/* ========================================
+   RESPONSIVE DESIGN - Mobile First
+   Minimal Branded Design
+   ======================================== */
+
+/* Small Mobile (320px and up) */
+@media (max-width: 480px) {
+    .container {
+        padding: var(--spacing-sm);
+    }
+    
+    .header {
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+    }
+    
+    .logo {
+        max-width: 150px;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .title {
+        font-size: clamp(1.5rem, 8vw, 2rem);
+    }
+    
+    .subtitle {
+        font-size: var(--font-size-base);
+    }
+    
+    .main-content {
+        padding: var(--spacing-md);
+    }
+    
+    .input-group {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .url-input, .analyze-btn {
+        width: 100%;
+        min-width: unset;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .result-card {
+        padding: var(--spacing-md);
+    }
+    
+    .result-actions {
+        flex-direction: column;
+    }
+    
+    .share-btn, .secondary-btn {
+        width: 100%;
+        min-width: unset;
+    }
+}
+
+/* Large Mobile / Small Tablet (481px - 767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+    .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .logo {
+        max-width: 180px;
+    }
+}
+
+/* Tablet (768px and up) */
+@media (min-width: 768px) {
+    .container {
+        padding: var(--spacing-lg);
+    }
+    
+    .header {
+        padding: var(--spacing-lg) 0;
+    }
+    
+    .logo {
+        max-width: 200px;
+    }
+    
+    .main-content {
+        padding: var(--spacing-xl);
+    }
+    
+    .input-group {
+        gap: var(--spacing-md);
+    }
+    
+    .analyze-btn {
+        min-width: 180px;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop (1024px and up) */
+@media (min-width: 1024px) {
+    .container {
+        padding: var(--spacing-xl);
+    }
+    
+    .header {
+        padding: var(--spacing-xl) 0;
+    }
+    
+    .title {
+        font-size: clamp(2.5rem, 4vw, 3.5rem);
+    }
+    
+    .subtitle {
+        font-size: 1.25rem;
+    }
+    
+    .main-content {
+        padding: 3rem;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-md);
+    }
+    
+    .result-card {
+        padding: var(--spacing-xl);
+    }
+    
+    .input-group {
+        gap: var(--spacing-md);
+    }
+}
+
+/* Large Desktop (1200px and up) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 900px;
+    }
+    
+    .main-content {
+        padding: 3.5rem;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1000px;
+    }
+}
+
+/* High DPI / Retina Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .logo {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+    
+    .analyze-btn,
+    .share-btn,
+    .secondary-btn {
+        border: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    * {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+    }
+    
+    .header {
+        border-bottom: 2px solid #000;
+        padding-bottom: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .analyze-btn,
+    .input-group,
+    .result-actions,
+    .footer {
+        display: none;
+    }
+    
+    .container {
+        max-width: 100%;
+        padding: 0;
+    }
+    
+    .main-content {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        padding: var(--spacing-md);
+    }
+    
+    .result-card {
+        break-inside: avoid;
+        border: 1px solid #000;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .logo {
+        max-width: 150px;
+        filter: grayscale(1);
+    }
+    
+    .title {
+        font-size: 2rem;
+        color: #000 !important;
+    }
+    
+    .subtitle {
+        color: #666 !important;
+    }
+}
+
+/* Reduced Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .analyze-btn:hover,
+    .share-btn:hover,
+    .secondary-btn:hover {
+        transform: none;
+    }
+    
+    .loading-spinner {
+        animation: none;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: rgba(254, 253, 199, 0.5);
+        --border-hover: rgba(254, 253, 199, 0.8);
+        --text-muted: rgba(254, 253, 199, 0.9);
+    }
+    
+    .url-input,
+    .metric-item,
+    .result-card {
+        border-width: 2px;
+    }
+    
+    .analyze-btn {
+        border: 2px solid var(--primary-color);
+    }
+}
+
+/* Dark Mode Preference (already dark, but refined) */
+@media (prefers-color-scheme: dark) {
+    /* We're already dark, but ensure consistent behavior */
+    :root {
+        color-scheme: dark;
+    }
+    
+    .logo {
+        filter: brightness(0.95) contrast(1.05);
+    }
+}
+
+/* Focus Management for Better Accessibility */
+@media (any-hover: hover) {
+    .analyze-btn:hover,
+    .share-btn:hover,
+    .secondary-btn:hover {
+        transform: translateY(-1px);
+    }
+}
+
+/* Touch Device Optimizations */
+@media (any-pointer: coarse) {
+    .analyze-btn,
+    .share-btn,
+    .secondary-btn,
+    .url-input {
+        min-height: 48px; /* Better touch targets */
+    }
+    
+    .comparison-details summary {
+        padding: var(--spacing-xs);
+        margin: calc(-1 * var(--spacing-xs));
+    }
+}
+
+/* Landscape Mobile Optimization */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+    .header {
+        margin-bottom: var(--spacing-md);
+        padding: var(--spacing-sm) 0;
+    }
+    
+    .logo {
+        max-width: 120px;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .title {
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .subtitle {
+        font-size: var(--font-size-small);
+    }
+    
+    .main-content {
+        padding: var(--spacing-md);
+    }
+}/* ========================================
+   RESPONSIVE DESIGN - Mobile First
+   ======================================== */
+
+/* Mobile First (base styles zijn al mobile-friendly) */
+
+/* Small Mobile (320px and up) */
+@media (max-width: 480px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .title {
+        font-size: 2em;
+    }
+    
+    .main-content {
+        padding: 25px 20px;
+    }
+    
+    .input-group {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .url-input {
+        width: 100%;
+    }
+    
+    .analyze-btn {
+        width: 100%;
+        min-width: unset;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .result-card {
+        padding: 20px;
+    }
+}
+
+/* Tablet (768px and up) */
+@media (min-width: 768px) {
+    .container {
+        padding: 30px;
+    }
+    
+    .main-content {
+        padding: 50px 40px;
+    }
+    
+    .input-group {
+        gap: 20px;
+    }
+    
+    .analyze-btn {
+        min-width: 180px;
+    }
+}
+
+/* Desktop (1024px and up) */
+@media (min-width: 1024px) {
+    .container {
+        padding: 40px;
+    }
+    
+    .title {
+        font-size: 3em;
+    }
+    
+    .main-content {
+        padding: 60px 50px;
+    }
+    
+    .metrics-grid {
+        gap: 25px;
+    }
+    
+    .result-card {
+        padding: 30px;
+    }
+}
+
+/* Large Desktop (1200px and up) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 900px;
+    }
+    
+    .main-content {
+        padding: 70px 60px;
+    }
+}
+
+/* High DPI / Retina Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Optimizations for high-DPI screens */
+    .analyze-btn {
+        border: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .analyze-btn,
+    .input-group {
+        display: none;
+    }
+    
+    .container {
+        box-shadow: none;
+        max-width: 100%;
+    }
+    
+    .main-content {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    
+    body {
+        background: white;
+    }
+}
+
+/* Reduced Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .analyze-btn:hover {
+        transform: none;
+    }
+}
+
+/* Dark Mode Support (future enhancement) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #1a1a1a;
+        --card-background: #2d2d2d;
+        --text-color: #ffffff;
+        --text-muted: #cccccc;
+        --border-color: #444444;
+    }
+}

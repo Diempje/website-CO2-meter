@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website CO2 Meter - Duurzame Website Analyse</title>
+    <meta name="description" content="Ontdek de koolstofuitstoot van elke website met onze CO2 analyse tool. Krijg inzichten in performance en duurzaamheid.">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <a href="https://diim.be" target="_blanc"><img src="/images/logo-header.webp" alt="Logo" class="logo"></a>
+            <h1 class="title">Website CO2 Meter</h1>
+            <p class="subtitle">Ontdek de milieu-impact van je website</p>
+        </header>
+        
+        <main class="main-content">
+            <section class="analyzer-section">
+                <div class="input-group">
+                    <input 
+                        type="url" 
+                        placeholder="https://example.com" 
+                        id="websiteUrl"
+                        class="url-input"
+                        aria-label="Website URL invoeren"
+                    >
+                    <button 
+                        class="analyze-btn"
+                        id="analyzeButton"
+                    >
+                        <span class="btn-text">Analyseer Website</span>
+                        <span class="btn-loading" style="display: none;">🔄 Analyseren...</span>
+                    </button>
+                </div>
+                
+                <div id="results" class="results-container"></div>
+            </section>
+        </main>
+        
+        <footer class="footer">
+            <p>Mogelijk gemaakt door Google PageSpeed Insights, <a href="https://www.thegreenwebfoundation.org/co2-js/" target="_blanc">CO2.js</a> <a href="https://www.thegreenwebfoundation.org" target="_blanc">& Green Web Foundation</a></p>
+        </footer>
+    </div>
+    
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
