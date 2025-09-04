@@ -1,13 +1,14 @@
 /**
- * Main Application Logic - Website CO2 Meter
- * Handles UI interactions and result display
+ * Main Application Logic - Website CO2 Meter ENHANCED
+ * Performance Score Focus + Visitor Impact + Enhanced UI
  */
 
 // Application state
 const AppState = {
     isAnalyzing: false,
     currentResults: null,
-    analysisHistory: []
+    analysisHistory: [],
+    selectedVisitorScale: 10000 // Default to 10K visitors
 };
 
 // DOM Elements (cached for performance)
@@ -36,7 +37,7 @@ function initApp() {
     // Focus on input field
     DOM.urlInput?.focus();
     
-    console.log('🌱 CO2 Meter App initialized');
+    console.log('🌱 CO2 Meter App initialized - Enhanced Version');
 }
 
 /**
@@ -142,6 +143,44 @@ function updateLoadingState(isLoading) {
 }
 
 /**
+ * Generate PROMINENT Performance Score HTML - MAIN FOCUS
+ * @param {Object} data - Analysis results
+ * @returns {string} HTML string
+ */
+function generatePerformanceHeroHTML(data) {
+    const gradeColor = Utils.getGradeColor(data.grade);
+    const performanceBenchmark = data.benchmarks.performance;
+    const co2Benchmark = data.benchmarks.co2;
+    
+    return `
+        <div class="performance-hero">
+            <div class="performance-score-display">
+                <div class="grade-display" style="color: ${gradeColor};">
+                    ${data.grade}
+                </div>
+                <div class="score-display">
+                    <span class="score-number">${data.performanceScore}</span>
+                    <span class="score-label">/100</span>
+                </div>
+                <div class="performance-subtitle">
+                    Dit is ${performanceBenchmark.percentage}% ${performanceBenchmark.percentage > 0 && data.performanceScore >= 65 ? 'beter' : 'slechter'} dan het gemiddelde van ${co2Benchmark.average}g CO2 per pagina bezoek
+                </div>
+            </div>
+            <div class="performance-context">
+                <div class="context-item">
+                    <span class="context-icon">🌱</span>
+                    <span class="context-text">${Utils.formatCO2(data.co2PerVisit)} CO2 per bezoek</span>
+                </div>
+                <div class="context-item">
+                    <span class="context-icon">📊</span>
+                    <span class="context-text">${Utils.formatBytes(data.transferSize * 1024)} pagina grootte</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
  * Generate hosting status HTML
  * @param {Object} greenHosting - Green hosting data
  * @returns {string} HTML string
@@ -161,37 +200,73 @@ function generateHostingStatusHTML(greenHosting) {
 }
 
 /**
- * Generate environmental comparison HTML
+ * Generate ALL environmental comparisons HTML (no dropdown)
  * @param {Array} comparisons - Array of comparison objects
  * @returns {string} HTML string
  */
-function generateComparisonHTML(comparisons) {
-    const mainComparison = comparisons[0]; // Use car comparison as main
-    
+function generateAllComparisonsHTML(comparisons) {
     return `
         <div class="comparison-section">
-            <h4>🌍 Milieu Impact</h4>
-            <p class="main-comparison">
-                <strong>Vergelijkbaar met: ${mainComparison.icon} ${mainComparison.text}</strong>
-            </p>
-            <details class="comparison-details">
-                <summary>Meer vergelijkingen</summary>
-                <ul class="comparison-list">
-                    ${comparisons.slice(1).map(comp => 
-                        `<li>${comp.icon} ${comp.text}</li>`
-                    ).join('')}
-                </ul>
-            </details>
+            <h4>🌍 Milieu Impact Vergelijkingen</h4>
+            <div class="comparison-grid">
+                ${comparisons.map(comp => `
+                    <div class="comparison-item">
+                        <span class="comparison-icon">${comp.icon}</span>
+                        <span class="comparison-text">${comp.text}</span>
+                    </div>
+                `).join('')}
+            </div>
         </div>
     `;
 }
 
 /**
- * Generate benchmark comparison HTML
+ * Generate visitor impact scaling HTML
+ * @param {Array} visitorImpact - Visitor impact data
+ * @param {number} selectedScale - Currently selected scale
+ * @returns {string} HTML string
+ */
+function generateVisitorImpactHTML(visitorImpact, selectedScale) {
+    return `
+        <div class="visitor-impact-section">
+            <h4>👥 Impact bij Verschillende Bezoekers Aantallen</h4>
+            <p class="visitor-intro">Zie hoe de milieu-impact schaalt met meer website bezoekers per maand:</p>
+            
+            <div class="visitor-scales">
+                ${visitorImpact.map((scale, index) => `
+                    <div class="visitor-scale-card ${scale.visitors === selectedScale ? 'active' : ''}" 
+                         onclick="updateVisitorScale(${scale.visitors})" 
+                         tabindex="0">
+                        <div class="visitor-count">
+                            <strong>${scale.label}</strong>
+                            <span class="visitor-co2">${Utils.formatCO2(scale.totalCO2Monthly)} per maand</span>
+                        </div>
+                        <div class="visitor-yearly">
+                            <strong>${scale.totalCO2Yearly}kg CO2 per jaar</strong>
+                        </div>
+                        <div class="visitor-comparisons">
+                            <div class="visitor-comp-item">
+                                <span class="comp-icon">🌳</span>
+                                <span>${scale.treesNeeded} bomen nodig voor compensatie</span>
+                            </div>
+                            <div class="visitor-comp-item">
+                                <span class="comp-icon">🚗</span>
+                                <span>${scale.kmDriving}km autorijden equivalent</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Generate enhanced benchmark comparison HTML
  * @param {Object} benchmarks - Benchmark comparison data
  * @returns {string} HTML string
  */
-function generateBenchmarkHTML(benchmarks) {
+function generateEnhancedBenchmarkHTML(benchmarks) {
     if (!benchmarks) return '';
     
     const getStatusIcon = (status) => {
@@ -214,49 +289,138 @@ function generateBenchmarkHTML(benchmarks) {
         }
     };
     
+    const benchmarkItems = [];
+    
+    // Always include these core benchmarks
+    if (benchmarks.pageSize) {
+        benchmarkItems.push({
+            key: 'pageSize',
+            label: 'Website Grootte',
+            value: `${benchmarks.pageSize.value} KB`,
+            data: benchmarks.pageSize
+        });
+    }
+    
+    if (benchmarks.co2) {
+        benchmarkItems.push({
+            key: 'co2',
+            label: 'CO2 Uitstoot',
+            value: `${benchmarks.co2.value}g`,
+            data: benchmarks.co2
+        });
+    }
+    
+    if (benchmarks.performance) {
+        benchmarkItems.push({
+            key: 'performance',
+            label: 'Performance Score',
+            value: `${benchmarks.performance.value}/100`,
+            data: benchmarks.performance
+        });
+    }
+    
+    // Add optional benchmarks if available
+    if (benchmarks.httpRequests) {
+        benchmarkItems.push({
+            key: 'httpRequests',
+            label: 'HTTP Requests',
+            value: `${benchmarks.httpRequests.value}`,
+            data: benchmarks.httpRequests
+        });
+    }
+    
+    if (benchmarks.domElements) {
+        benchmarkItems.push({
+            key: 'domElements',
+            label: 'DOM Elementen',
+            value: `${benchmarks.domElements.value}`,
+            data: benchmarks.domElements
+        });
+    }
+    
     return `
         <div class="benchmark-section">
             <h4>📊 Benchmark Vergelijkingen</h4>
             <div class="benchmark-grid">
-                <div class="benchmark-item ${benchmarks.pageSize.status}">
-                    <div class="benchmark-metric">
-                        <span class="benchmark-label">Website Grootte</span>
-                        <span class="benchmark-value" style="color: ${getStatusColor(benchmarks.pageSize.status)}">
-                            ${getStatusIcon(benchmarks.pageSize.status)} ${benchmarks.pageSize.value} KB
-                        </span>
+                ${benchmarkItems.map(item => `
+                    <div class="benchmark-item ${item.data.status}">
+                        <div class="benchmark-metric">
+                            <span class="benchmark-label">${item.label}</span>
+                            <span class="benchmark-value" style="color: ${getStatusColor(item.data.status)}">
+                                ${getStatusIcon(item.data.status)} ${item.value}
+                            </span>
+                        </div>
+                        <div class="benchmark-comparison">
+                            vs gemiddeld ${item.key === 'pageSize' ? item.data.average + ' KB' : 
+                                         item.key === 'co2' ? item.data.average + 'g CO2' :
+                                         item.key === 'performance' ? item.data.average + '/100' :
+                                         item.data.average}<br>
+                            <strong>${item.data.message}</strong>
+                        </div>
                     </div>
-                    <div class="benchmark-comparison">
-                        vs gemiddeld ${benchmarks.pageSize.average} KB<br>
-                        <strong>${benchmarks.pageSize.message}</strong>
-                    </div>
-                </div>
-                
-                <div class="benchmark-item ${benchmarks.co2.status}">
-                    <div class="benchmark-metric">
-                        <span class="benchmark-label">CO2 Uitstoot</span>
-                        <span class="benchmark-value" style="color: ${getStatusColor(benchmarks.co2.status)}">
-                            ${getStatusIcon(benchmarks.co2.status)} ${benchmarks.co2.value}g
-                        </span>
-                    </div>
-                    <div class="benchmark-comparison">
-                        vs gemiddeld ${benchmarks.co2.average}g CO2<br>
-                        <strong>${benchmarks.co2.message}</strong>
-                    </div>
-                </div>
-                
-                <div class="benchmark-item ${benchmarks.performance.status}">
-                    <div class="benchmark-metric">
-                        <span class="benchmark-label">Performance Score</span>
-                        <span class="benchmark-value" style="color: ${getStatusColor(benchmarks.performance.status)}">
-                            ${getStatusIcon(benchmarks.performance.status)} ${benchmarks.performance.value}/100
-                        </span>
-                    </div>
-                    <div class="benchmark-comparison">
-                        vs gemiddeld ${benchmarks.performance.average}/100<br>
-                        <strong>${benchmarks.performance.message}</strong>
-                    </div>
-                </div>
+                `).join('')}
             </div>
+        </div>
+    `;
+}
+
+/**
+ * Generate detailed metrics grid HTML
+ * @param {Object} data - Analysis results
+ * @returns {string} HTML string
+ */
+function generateDetailedMetricsHTML(data) {
+    const metrics = [
+        {
+            icon: '✅',
+            label: 'CO2 per bezoek',
+            value: Utils.formatCO2(data.co2PerVisit)
+        },
+        {
+            icon: '📁',
+            label: 'Website grootte',
+            value: Utils.formatBytes(data.transferSize * 1024)
+        },
+        {
+            icon: '🖼️',
+            label: 'Afbeelding optimalisatie',
+            value: `${Math.round(data.optimizations.imageOptimizationScore * 100)}/100`
+        }
+    ];
+    
+    // Add optional metrics if available
+    if (data.domElements) {
+        metrics.push({
+            icon: '🏠',
+            label: 'DOM elementen',
+            value: data.domElements.toLocaleString('nl-NL')
+        });
+    }
+    
+    if (data.httpRequests) {
+        metrics.push({
+            icon: '📡',
+            label: 'HTTP requests',
+            value: data.httpRequests.toLocaleString('nl-NL')
+        });
+    }
+    
+    // Add potential savings if significant
+    if (data.optimizations.canSave > 5) {
+        metrics.push({
+            icon: '💾',
+            label: 'Potentiële besparing',
+            value: Utils.formatBytes(data.optimizations.canSave * 1024)
+        });
+    }
+    
+    return `
+        <div class="metrics-grid">
+            ${metrics.map(metric => `
+                <div class="metric-item">
+                    <p>${metric.icon} <strong>${metric.label}:</strong> ${metric.value}</p>
+                </div>
+            `).join('')}
         </div>
     `;
 }
@@ -269,61 +433,73 @@ function generateBenchmarkHTML(benchmarks) {
 function generateOptimizationTipsHTML(optimizations) {
     if (optimizations.canSave <= 5) return ''; // Don't show tips if savings are minimal
     
+    const co2Savings = Math.round((optimizations.canSave / 1024) * 0.8 * 100) / 100; // Rough estimate
+    
     return `
         <div class="tip-box">
             <span class="tip-icon">💡</span>
             <strong>Optimalisatie Tip:</strong> 
             Je kunt ${Utils.formatBytes(optimizations.canSave * 1024)} besparen door ongebruikte code te verwijderen!
-            Dit zou de CO2 uitstoot met ongeveer ${Math.round((optimizations.canSave / 1024) * 4.6 * 100) / 100}g kunnen verminderen.
+            Dit zou de CO2 uitstoot met ongeveer ${co2Savings}g kunnen verminderen per bezoek.
+            ${optimizations.unusedCSS > 0 ? `<br>• ${optimizations.unusedCSS}KB ongebruikte CSS` : ''}
+            ${optimizations.unusedJS > 0 ? `<br>• ${optimizations.unusedJS}KB ongebruikte JavaScript` : ''}
         </div>
     `;
 }
 
 /**
- * Display analysis results
+ * Update visitor scale selection
+ * @param {number} visitors - Number of visitors
+ */
+function updateVisitorScale(visitors) {
+    AppState.selectedVisitorScale = visitors;
+    
+    if (AppState.currentResults) {
+        // Add smooth transition
+        const visitorSection = document.querySelector('.visitor-impact-section');
+        if (visitorSection) {
+            visitorSection.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                visitorSection.outerHTML = generateVisitorImpactHTML(
+                    AppState.currentResults.visitorImpact, 
+                    AppState.selectedVisitorScale
+                );
+                
+                // Restore opacity
+                const newVisitorSection = document.querySelector('.visitor-impact-section');
+                if (newVisitorSection) {
+                    newVisitorSection.style.opacity = '1';
+                }
+            }, 150);
+        }
+    }
+}
+
+/**
+ * Display analysis results with PERFORMANCE FOCUS
  * @param {Object} data - Analysis results
  */
 function displayResults(data) {
     const displayUrl = Utils.formatURLForDisplay(data.url);
-    const co2Formatted = Utils.formatCO2(data.co2PerVisit);
-    const gradeColor = Utils.getGradeColor(data.grade);
     const comparisons = Utils.getEnvironmentalComparison(data.co2PerVisit);
     
     DOM.resultsContainer.innerHTML = `
         <div class="result-card">
             <h3>🌱 Analyse Resultaten voor: ${Utils.sanitizeHTML(displayUrl)}</h3>
             
+            ${generatePerformanceHeroHTML(data)}
+            
             ${generateHostingStatusHTML(data.greenHosting)}
             
-            <div class="metrics-grid">
-                <div class="metric-item">
-                    <p>✅ <strong>CO2 per bezoek:</strong> ${co2Formatted}</p>
-                </div>
-                <div class="metric-item">
-                    <p>📊 <strong>Performance:</strong> 
-                        <span style="color: ${gradeColor}; font-weight: bold;">
-                            ${data.performanceScore}/100 (${data.grade})
-                        </span>
-                    </p>
-                </div>
-                <div class="metric-item">
-                    <p>📁 <strong>Website grootte:</strong> ${Utils.formatBytes(data.transferSize * 1024)}</p>
-                </div>
-                ${data.domElements ? `
-                <div class="metric-item">
-                    <p>🏠 <strong>DOM elementen:</strong> ${data.domElements}</p>
-                </div>` : ''}
-                ${data.httpRequests ? `
-                <div class="metric-item">
-                    <p>📡 <strong>HTTP requests:</strong> ${data.httpRequests}</p>
-                </div>` : ''}
-                <div class="metric-item">
-                    <p>🖼️ <strong>Afbeelding optimalisatie:</strong> ${Math.round(data.optimizations.imageOptimizationScore * 100)}/100</p>
-                </div>
-            </div>
+            ${generateDetailedMetricsHTML(data)}
             
-            ${generateBenchmarkHTML(data.benchmarks)}
-            ${generateComparisonHTML(comparisons)}
+            ${generateEnhancedBenchmarkHTML(data.benchmarks)}
+            
+            ${generateAllComparisonsHTML(comparisons)}
+            
+            ${generateVisitorImpactHTML(data.visitorImpact, AppState.selectedVisitorScale)}
+            
             ${generateOptimizationTipsHTML(data.optimizations)}
             
             <div class="result-actions">
@@ -332,6 +508,11 @@ function displayResults(data) {
             </div>
         </div>
     `;
+    
+    // Scroll to results for better UX
+    setTimeout(() => {
+        Utils.scrollTo('.result-card', 100);
+    }, 100);
 }
 
 /**
@@ -370,15 +551,26 @@ function validateURLInput() {
 }
 
 /**
- * Share results functionality
+ * Share results functionality with enhanced data
  */
 async function shareResults() {
     if (!AppState.currentResults) return;
     
+    const selectedImpact = AppState.currentResults.visitorImpact.find(
+        scale => scale.visitors === AppState.selectedVisitorScale
+    ) || AppState.currentResults.visitorImpact[1];
+    
     const shareText = `🌱 Website CO2 Analyse van ${AppState.currentResults.url}:
-📊 CO2 uitstoot: ${Utils.formatCO2(AppState.currentResults.co2PerVisit)} per bezoek
-⚡ Performance: ${AppState.currentResults.performanceScore}/100 (${AppState.currentResults.grade})
-🌍 Vergelijkbaar met: ${Utils.getEnvironmentalComparison(AppState.currentResults.co2PerVisit)[0].text}
+
+📊 Performance Score: ${AppState.currentResults.performanceScore}/100 (${AppState.currentResults.grade})
+✅ CO2 uitstoot: ${Utils.formatCO2(AppState.currentResults.co2PerVisit)} per bezoek
+📁 Website grootte: ${Utils.formatBytes(AppState.currentResults.transferSize * 1024)}
+
+👥 Bij ${selectedImpact.label}:
+🌳 ${selectedImpact.treesNeeded} bomen nodig voor compensatie
+🚗 ${selectedImpact.kmDriving}km autorijden equivalent
+
+${AppState.currentResults.greenHosting.isGreen ? '🌱 Gebruikt groene hosting!' : '⚡ Gebruikt grijze hosting'}
 
 Geanalyseerd met: ${window.location.href}`;
     
@@ -400,10 +592,10 @@ Geanalyseerd met: ${window.location.href}`;
             const shareBtn = document.querySelector('.share-btn');
             const originalText = shareBtn?.innerHTML;
             if (shareBtn) {
-                shareBtn.innerHTML = '✅ Gekopieerd!';
+                shareBtn.innerHTML = '✅ Gekopieerd naar klembord!';
                 setTimeout(() => {
                     shareBtn.innerHTML = originalText;
-                }, 2000);
+                }, 3000);
             }
         }
     }
@@ -416,7 +608,15 @@ function analyzeAnother() {
     DOM.urlInput?.focus();
     DOM.urlInput?.select();
     DOM.resultsContainer.innerHTML = '';
+    
+    // Reset visitor scale to default
+    AppState.selectedVisitorScale = 10000;
 }
+
+// Make functions globally available
+window.updateVisitorScale = updateVisitorScale;
+window.shareResults = shareResults;
+window.analyzeAnother = analyzeAnother;
 
 // Initialize app when DOM is loaded
 if (document.readyState === 'loading') {
