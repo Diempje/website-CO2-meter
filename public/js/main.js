@@ -187,21 +187,85 @@ function generateComparisonHTML(comparisons) {
 }
 
 /**
- * Generate benchmark test HTML (simple version for testing)
+ * Generate benchmark comparison HTML
  * @param {Object} benchmarks - Benchmark comparison data
  * @returns {string} HTML string
  */
-function generateBenchmarkTestHTML(benchmarks) {
+function generateBenchmarkHTML(benchmarks) {
+    if (!benchmarks) return '';
+    
+    const getStatusIcon = (status) => {
+        switch(status) {
+            case 'excellent': return '🏆';
+            case 'good': return '✅';
+            case 'average': return '⚖️';
+            case 'poor': return '⚠️';
+            default: return '📊';
+        }
+    };
+    
+    const getStatusColor = (status) => {
+        switch(status) {
+            case 'excellent': return 'var(--success-color)';
+            case 'good': return 'var(--accent-green)';
+            case 'average': return 'var(--warning-color)';
+            case 'poor': return 'var(--error-color)';
+            default: return 'var(--text-muted)';
+        }
+    };
+    
     return `
-        <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #4CAF50;">
-            <h4>📊 TEST: Benchmark Vergelijkingen</h4>
-            <p><strong>Website grootte:</strong> ${benchmarks.pageSize?.value || 'N/A'} KB vs gemiddeld ${benchmarks.pageSize?.average || 'N/A'} KB</p>
-            <p><strong>Status:</strong> ${benchmarks.pageSize?.message || 'N/A'}</p>
-            <p><strong>Performance:</strong> ${benchmarks.performance?.value || 'N/A'}/100 vs gemiddeld ${benchmarks.performance?.average || 'N/A'}/100</p>
-            <p><strong>Status:</strong> ${benchmarks.performance?.message || 'N/A'}</p>
+        <div class="benchmark-section">
+            <h4>📊 Benchmark Vergelijkingen</h4>
+            <div class="benchmark-grid">
+                <div class="benchmark-item ${benchmarks.pageSize.status}">
+                    <div class="benchmark-metric">
+                        <span class="benchmark-label">Website Grootte</span>
+                        <span class="benchmark-value" style="color: ${getStatusColor(benchmarks.pageSize.status)}">
+                            ${getStatusIcon(benchmarks.pageSize.status)} ${benchmarks.pageSize.value} KB
+                        </span>
+                    </div>
+                    <div class="benchmark-comparison">
+                        vs gemiddeld ${benchmarks.pageSize.average} KB<br>
+                        <strong>${benchmarks.pageSize.message}</strong>
+                    </div>
+                </div>
+                
+                <div class="benchmark-item ${benchmarks.co2.status}">
+                    <div class="benchmark-metric">
+                        <span class="benchmark-label">CO2 Uitstoot</span>
+                        <span class="benchmark-value" style="color: ${getStatusColor(benchmarks.co2.status)}">
+                            ${getStatusIcon(benchmarks.co2.status)} ${benchmarks.co2.value}g
+                        </span>
+                    </div>
+                    <div class="benchmark-comparison">
+                        vs gemiddeld ${benchmarks.co2.average}g CO2<br>
+                        <strong>${benchmarks.co2.message}</strong>
+                    </div>
+                </div>
+                
+                <div class="benchmark-item ${benchmarks.performance.status}">
+                    <div class="benchmark-metric">
+                        <span class="benchmark-label">Performance Score</span>
+                        <span class="benchmark-value" style="color: ${getStatusColor(benchmarks.performance.status)}">
+                            ${getStatusIcon(benchmarks.performance.status)} ${benchmarks.performance.value}/100
+                        </span>
+                    </div>
+                    <div class="benchmark-comparison">
+                        vs gemiddeld ${benchmarks.performance.average}/100<br>
+                        <strong>${benchmarks.performance.message}</strong>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 }
+
+/**
+ * Generate optimization tips HTML
+ * @param {Object} optimizations - Optimization data
+ * @returns {string} HTML string
+ */
 function generateOptimizationTipsHTML(optimizations) {
     if (optimizations.canSave <= 5) return ''; // Don't show tips if savings are minimal
     
@@ -258,6 +322,7 @@ function displayResults(data) {
                 </div>
             </div>
             
+            ${generateBenchmarkHTML(data.benchmarks)}
             ${generateComparisonHTML(comparisons)}
             ${generateOptimizationTipsHTML(data.optimizations)}
             

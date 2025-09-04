@@ -15,6 +15,83 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json()); // Voor JSON data van frontend
 app.use(express.static('public')); // Serve static files from public directory
 
+// BENCHMARK DATA - Gemiddelde waarden voor vergelijking
+const BENCHMARK_DATA = {
+    pageSize: {
+        average: 2048, // KB - gemiddelde website grootte
+        excellent: 512, // KB - uitstekend
+        good: 1024, // KB - goed
+        poor: 4096 // KB - slecht
+    },
+    co2PerVisit: {
+        average: 4.6, // gram CO2 - wereldwijd gemiddelde
+        excellent: 1.0, // gram CO2 - zeer goed
+        good: 2.5, // gram CO2 - goed
+        poor: 8.0 // gram CO2 - slecht
+    },
+    performanceScore: {
+        average: 65, // Google PageSpeed gemiddelde
+        excellent: 90,
+        good: 75,
+        poor: 50
+    },
+    httpRequests: {
+        average: 70, // gemiddeld aantal HTTP requests
+        excellent: 30,
+        good: 50,
+        poor: 100
+    }
+};
+
+// Helper functie om benchmark vergelijking te maken
+function calculateBenchmarks(data) {
+    const benchmarks = {};
+    
+    // Page Size Benchmark
+    const pageSizeKB = data.transferSize;
+    benchmarks.pageSize = {
+        value: pageSizeKB,
+        average: BENCHMARK_DATA.pageSize.average,
+        status: pageSizeKB <= BENCHMARK_DATA.pageSize.excellent ? 'excellent' :
+               pageSizeKB <= BENCHMARK_DATA.pageSize.good ? 'good' :
+               pageSizeKB <= BENCHMARK_DATA.pageSize.average ? 'average' : 'poor',
+        percentage: Math.round(((BENCHMARK_DATA.pageSize.average - pageSizeKB) / BENCHMARK_DATA.pageSize.average) * 100),
+        message: pageSizeKB <= BENCHMARK_DATA.pageSize.average ? 
+                `${Math.round(((BENCHMARK_DATA.pageSize.average - pageSizeKB) / BENCHMARK_DATA.pageSize.average) * 100)}% kleiner dan gemiddeld` :
+                `${Math.round(((pageSizeKB - BENCHMARK_DATA.pageSize.average) / BENCHMARK_DATA.pageSize.average) * 100)}% groter dan gemiddeld`
+    };
+    
+    // CO2 Benchmark
+    const co2Value = data.co2PerVisit;
+    benchmarks.co2 = {
+        value: co2Value,
+        average: BENCHMARK_DATA.co2PerVisit.average,
+        status: co2Value <= BENCHMARK_DATA.co2PerVisit.excellent ? 'excellent' :
+               co2Value <= BENCHMARK_DATA.co2PerVisit.good ? 'good' :
+               co2Value <= BENCHMARK_DATA.co2PerVisit.average ? 'average' : 'poor',
+        percentage: Math.round(((BENCHMARK_DATA.co2PerVisit.average - co2Value) / BENCHMARK_DATA.co2PerVisit.average) * 100),
+        message: co2Value <= BENCHMARK_DATA.co2PerVisit.average ? 
+                `${Math.round(((BENCHMARK_DATA.co2PerVisit.average - co2Value) / BENCHMARK_DATA.co2PerVisit.average) * 100)}% minder CO2 dan gemiddeld` :
+                `${Math.round(((co2Value - BENCHMARK_DATA.co2PerVisit.average) / BENCHMARK_DATA.co2PerVisit.average) * 100)}% meer CO2 dan gemiddeld`
+    };
+    
+    // Performance Benchmark
+    const performanceScore = data.performanceScore;
+    benchmarks.performance = {
+        value: performanceScore,
+        average: BENCHMARK_DATA.performanceScore.average,
+        status: performanceScore >= BENCHMARK_DATA.performanceScore.excellent ? 'excellent' :
+               performanceScore >= BENCHMARK_DATA.performanceScore.good ? 'good' :
+               performanceScore >= BENCHMARK_DATA.performanceScore.average ? 'average' : 'poor',
+        percentage: Math.round(((performanceScore - BENCHMARK_DATA.performanceScore.average) / BENCHMARK_DATA.performanceScore.average) * 100),
+        message: performanceScore >= BENCHMARK_DATA.performanceScore.average ? 
+                `${Math.round(((performanceScore - BENCHMARK_DATA.performanceScore.average) / BENCHMARK_DATA.performanceScore.average) * 100)}% beter dan gemiddeld` :
+                `${Math.round(((BENCHMARK_DATA.performanceScore.average - performanceScore) / BENCHMARK_DATA.performanceScore.average) * 100)}% slechter dan gemiddeld`
+    };
+    
+    return benchmarks;
+}
+
 // API route voor website analyse
 app.post('/api/analyze', async (req, res) => {
     try {
@@ -118,12 +195,22 @@ app.post('/api/analyze', async (req, res) => {
         // Performance score
         const performanceScore = data.lighthouseResult.categories.performance.score * 100;
         
+        // Bereken benchmarks
+        const analysisData = {
+            transferSize: Math.round(transferSize / 1024), // KB
+            co2PerVisit: Math.round(co2Emission * 1000) / 1000,
+            performanceScore: Math.round(performanceScore)
+        };
+        
+        const benchmarks = calculateBenchmarks(analysisData);
+        console.log('📊 Benchmarks berekend:', benchmarks);
+        
         // Resultaat samenstellen
         const result = {
             url: url,
-            co2PerVisit: Math.round(co2Emission * 1000) / 1000, // afronden op 3 decimalen
-            transferSize: Math.round(transferSize / 1024), // KB
-            performanceScore: Math.round(performanceScore),
+            co2PerVisit: analysisData.co2PerVisit,
+            transferSize: analysisData.transferSize,
+            performanceScore: analysisData.performanceScore,
             grade: getGrade(performanceScore),
             comparison: getComparison(co2Emission),
             // Groene hosting info
@@ -139,7 +226,9 @@ app.post('/api/analyze', async (req, res) => {
                 unusedJS: Math.round((unusedJS?.details?.overallSavingsBytes || 0) / 1024), // KB
                 canSave: Math.round(((unusedCSS?.details?.overallSavingsBytes || 0) + 
                          (unusedJS?.details?.overallSavingsBytes || 0)) / 1024) // KB
-            }
+            },
+            // NIEUWE BENCHMARK DATA:
+            benchmarks: benchmarks
         };
         
         res.json(result);
