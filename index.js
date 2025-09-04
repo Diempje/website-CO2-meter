@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware setup
 app.use(express.json()); // Voor JSON data van frontend
-app.use(express.static('public')); // Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from public directory
 
 // BENCHMARK DATA - Bijgewerkte waarden gebaseerd op Website Carbon Calculator 2024
 const BENCHMARK_DATA = {
