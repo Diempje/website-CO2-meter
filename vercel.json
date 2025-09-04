@@ -8,6 +8,18 @@
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "index.js"
+    },
+    {
+      "src": "/health",
+      "dest": "index.js"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|webp))",
+      "dest": "/public/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "index.js"
     }
