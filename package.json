@@ -4,7 +4,7 @@
   "description": "Website CO2 uitstoot analyzer tool",
   "main": "index.js",
   "scripts": {
-    "build": "echo 'No build step required'",
+    "build": "npm ci",
     "serve": "node index.js",
     "start": "node index.js",
     "dev": "node index.js"
