@@ -20,6 +20,7 @@ const DOM = {
     btnLoading: null
 };
 
+
 /**
  * Initialize the application
  */
@@ -37,7 +38,7 @@ function initApp() {
     // Focus on input field
     DOM.urlInput?.focus();
     
-    console.log('🌱 CO2 Meter App initialized - Enhanced Version');
+    console.log('Yas, we zijn live jonges!');
 }
 
 /**
@@ -102,7 +103,7 @@ async function performAnalysis(url) {
     updateLoadingState(true);
     
     // Show loading in results area
-    Utils.showLoading(DOM.resultsContainer, 'Website wordt geanalyseerd... Dit kan 5-10 seconden duren.');
+    Utils.showLoading(DOM.resultsContainer, 'Website wordt geanalyseerd... Dit kan 5-10 seconden duren, afhankelijk van de grootte van de website.');
     
     try {
         // Call API
@@ -115,11 +116,11 @@ async function performAnalysis(url) {
         // Display results
         displayResults(results);
         
-        console.log('✅ Analysis completed:', results);
+        console.log('Analyse afgerond:', results);
         
     } catch (error) {
-        console.error('❌ Analysis failed:', error);
-        showError(error.message || 'Er ging iets mis bij het analyseren van de website');
+        console.error('Oh neen toch! De analyse is mislukt:', error);
+        showError(error.message || 'Oops, er ging iets mis tijdens de analyse. Probeer het later opnieuw.');
         
     } finally {
         AppState.isAnalyzing = false;
@@ -167,12 +168,12 @@ function generatePerformanceHeroHTML(data) {
                 </div>
             </div>
             <div class="performance-context">
-                <div class="context-item">
-                    <span class="context-icon">🌱</span>
-                    <span class="context-text">${Utils.formatCO2(data.co2PerVisit)} CO2 per bezoek</span>
+                <div class="context-item context-text">
+                    ${Utils.icons.co2}
+                    ${Utils.formatCO2(data.co2PerVisit)} CO2 per bezoek
                 </div>
                 <div class="context-item">
-                    <span class="context-icon">📊</span>
+                    ${Utils.icons.pageIcon}
                     <span class="context-text">${Utils.formatBytes(data.transferSize * 1024)} pagina grootte</span>
                 </div>
             </div>
@@ -187,8 +188,8 @@ function generatePerformanceHeroHTML(data) {
  */
 function generateHostingStatusHTML(greenHosting) {
     const statusClass = greenHosting.isGreen ? 'green' : 'grey';
-    const statusIcon = greenHosting.isGreen ? '🌱' : '⚡';
-    const statusTitle = greenHosting.isGreen ? 'Groene Hosting!' : 'Grijze Hosting';
+    const statusIcon = greenHosting.isGreen ? `${Utils.icons.greenHosting}` : `${Utils.icons.greyHosting}`;
+    const statusTitle = greenHosting.isGreen ? 'Groene Hosting!' : 'Oh neen, je hosting is grijs!';
     
     return `
         <div class="hosting-status ${statusClass}">
@@ -372,17 +373,17 @@ function generateEnhancedBenchmarkHTML(benchmarks) {
 function generateDetailedMetricsHTML(data) {
     const metrics = [
         {
-            icon: '✅',
+            icon: Utils.icons.bulletPoint,
             label: 'CO2 per bezoek',
             value: Utils.formatCO2(data.co2PerVisit)
         },
         {
-            icon: '📁',
+            icon: Utils.icons.pageIcon,
             label: 'Website grootte',
             value: Utils.formatBytes(data.transferSize * 1024)
         },
         {
-            icon: '🖼️',
+            icon: Utils.icons.imageIcon,
             label: 'Afbeelding optimalisatie',
             value: `${Math.round(data.optimizations.imageOptimizationScore * 100)}/100`
         }
@@ -391,7 +392,7 @@ function generateDetailedMetricsHTML(data) {
     // Add optional metrics if available
     if (data.domElements) {
         metrics.push({
-            icon: '🏠',
+            icon: Utils.icons.DOMIcon,
             label: 'DOM elementen',
             value: data.domElements.toLocaleString('nl-NL')
         });
@@ -399,7 +400,7 @@ function generateDetailedMetricsHTML(data) {
     
     if (data.httpRequests) {
         metrics.push({
-            icon: '📡',
+            icon: Utils.icons.requestsIcon,
             label: 'HTTP requests',
             value: data.httpRequests.toLocaleString('nl-NL')
         });
@@ -408,7 +409,7 @@ function generateDetailedMetricsHTML(data) {
     // Add potential savings if significant
     if (data.optimizations.canSave > 5) {
         metrics.push({
-            icon: '💾',
+            icon: Utils.icons.downArrow,
             label: 'Potentiële besparing',
             value: Utils.formatBytes(data.optimizations.canSave * 1024)
         });
@@ -486,7 +487,7 @@ function displayResults(data) {
     
     DOM.resultsContainer.innerHTML = `
         <div class="result-card">
-            <h3>🌱 Analyse Resultaten voor: ${Utils.sanitizeHTML(displayUrl)}</h3>
+            <h3>${Utils.icons.bulletPoint} Analyse Resultaten voor: ${Utils.sanitizeHTML(displayUrl)}</h3>
             
             ${generatePerformanceHeroHTML(data)}
             
@@ -522,7 +523,7 @@ function displayResults(data) {
 function showError(message) {
     DOM.resultsContainer.innerHTML = `
         <div class="error-card">
-            <h3>❌ Er ging iets mis</h3>
+            <h3>Fuck,Er ging iets mis</h3>
             <p>${Utils.sanitizeHTML(message)}</p>
             <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
                 Controleer of de URL correct is en probeer opnieuw.
@@ -624,3 +625,54 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
+
+
+
+// Development helper - Voeg test button toe
+// DEVELOPMENT ONLY - Auto-load test data
+const TEST_DATA = {
+    url: "https://example.com",
+    co2PerVisit: 5,
+    transferSize: 1500,
+    performanceScore: 15,
+    grade: "D",
+    domElements: 1200,
+    httpRequests: 45,
+    greenHosting: {
+        isGreen: true,
+        provider: "Green Hosting Provider",
+        impact: "Lagere CO2 impact door groene energie!"
+    },
+    optimizations: {
+        imageOptimizationScore: 0.85,
+        unusedCSS: 25,
+        unusedJS: 40,
+        canSave: 65
+    },
+    benchmarks: {
+        pageSize: { value: 1500, average: 2048, status: 'good', percentage: 27, message: '27% kleiner dan gemiddeld' },
+        co2: { value: 5, average: 0.8, status: 'average', percentage: 50, message: '50% meer CO2 dan gemiddeld' },
+        performance: { value: 78, average: 65, status: 'good', percentage: 20, message: '20% beter dan gemiddeld' },
+        httpRequests: { value: 45, average: 70, status: 'excellent', percentage: 36, message: '36% minder requests dan gemiddeld' },
+        domElements: { value: 1200, average: 1500, status: 'good', percentage: 20, message: '20% minder elementen dan gemiddeld' }
+    },
+    visitorImpact: [
+        { visitors: 1000, label: "1.000 bezoekers/maand", totalCO2Monthly: 1200, totalCO2Yearly: 14.4, treesNeeded: 1, kmDriving: 35.6 },
+        { visitors: 10000, label: "10.000 bezoekers/maand", totalCO2Monthly: 12000, totalCO2Yearly: 144, treesNeeded: 7, kmDriving: 356 },
+        { visitors: 100000, label: "100.000 bezoekers/maand", totalCO2Monthly: 120000, totalCO2Yearly: 1440, treesNeeded: 66, kmDriving: 3564 }
+    ]
+};
+
+// Auto-load test data op localhost
+function autoLoadTestData() {
+    if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
+        setTimeout(() => {
+            AppState.currentResults = TEST_DATA;
+            displayResults(TEST_DATA);
+            console.log('🧪 Test data automatically loaded for development');
+        }, 500);
+    }
+}
+
+// Auto-load na app initialization
+setTimeout(autoLoadTestData, 100);

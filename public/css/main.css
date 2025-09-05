@@ -11,13 +11,16 @@
     --card-background: #103823;
     --text-muted: rgba(254, 253, 199, 0.7);
     
+    /*Alt colors*/
+
+
     /* Interactive Colors */
     --primary-color: #4CAF50;
     --primary-hover: #fce7b9;
     --accent-green: #66BB6A;
     --success-color: #81C784;
     --warning-color: #FFB74D;
-    --error-color: #F06292;
+    --error-color: #990a0a;
     
     /* Subtle Variations */
     --border-color: rgba(254, 253, 199, 0.15);
@@ -147,4 +150,10 @@ a {
     color: var(--text-muted);
     font-size: var(--font-size-small);
     font-weight: 300;
+}
+
+/* SVG groottes */
+
+.bullet-icon{
+    max-width: 20px;
 }

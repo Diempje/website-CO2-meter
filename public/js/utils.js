@@ -4,6 +4,18 @@
  */
 
 const Utils = {
+    icons: {
+        imageIcon: '<img src="/images/image_icon.svg" alt="Afbeeldingen" class="bullet-icon">',
+        bulletPoint: '<img src="/images/bullet_point_icon.svg" alt="CO2" class="bullet-icon">',
+        greenHosting: '<img src="/images/groene_hosting.svg" alt="groene hosting" class="bullet-icon">',
+        greyHosting: '<img src="/images/grijze_hosting.svg" alt="grijze hosting" class="bullet-icon">',
+        co2: '<img src="/images/context_icon.svg" alt="CO2" class="bullet-icon">',
+        pageIcon: '<img src="/images/context_icon_page_size.svg" alt="Pagina Icoon" class="bullet-icon">',
+        DOMIcon: '<img src="/images/dom_icon.svg" alt="DOM" class="bullet-icon">',
+        requestsIcon: '<img src="/images/requests_icon.svg" alt="Verzoeken" class="bullet-icon">',
+        downArrow: '<img src="/images/down_arrows_icon.svg" alt="Daling" class="bullet-icon">',
+    },
+    
     /**
      * Format file sizes in human readable format
      * @param {number} bytes - Size in bytes
