@@ -340,13 +340,15 @@ app.get('*', (req, res) => {
 });
 
 // Helper functies
+// Helper functies - UPDATED GRADE SCALE
 function getGrade(score) {
     if (score >= 90) return 'A+';
     if (score >= 80) return 'A';
-    if (score >= 70) return 'B+';
-    if (score >= 60) return 'B';
-    if (score >= 50) return 'C';
-    return 'D';
+    if (score >= 70) return 'B';
+    if (score >= 60) return 'C';
+    if (score >= 50) return 'D';
+    if (score >= 40) return 'E';
+    return 'F';
 }
 
 function getComparison(co2Grams) {

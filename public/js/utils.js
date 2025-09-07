@@ -1,6 +1,6 @@
 /**
  * Utility Functions - Helper functions for the CO2 Meter
- * Website CO2 Meter - Enhanced with Benchmark Support
+ * Website CO2 Meter - Enhanced with Custom Loading Animation
  */
 
 const Utils = {
@@ -27,9 +27,21 @@ const Utils = {
         bagIcon: '<img src="/images/bag_icon.svg" alt="Tas" class="benchmark-icon">',
         treeIcon: '<img src="/images/tree_icon.svg" alt="Boom" class="benchmark-icon">',
         shareIcon: '<img src="/images/share_icon.svg" alt="Delen" class="bullet-icon">',
-        analyseerIcon: '<img src="/images/analyse_icon.svg" alt="Analyseer" class="bullet-icon">'
-
+        analyseerIcon: '<img src="/images/analyse_icon.svg" alt="Analyseer" class="bullet-icon">',
+        loadingIcon: '<img src="/images/analyse_icon.svg" alt="Analyseren" class="loading-icon">'
     },
+
+    // CLIMATE IMPACT TIPS - Easy to modify!
+    climateTips: [
+        "Wist je dat websites verantwoordelijk zijn voor 4% van de wereldwijde CO2 uitstoot?",
+        "Een gemiddelde website produceert 4.6g CO2 per pageview",
+        "Groene hosting kan de CO2 impact van je website met 60% verminderen",
+        "Het optimaliseren van afbeeldingen kan tot 50% minder data verbruik opleveren",
+        "Mobiele optimalisatie is cruciaal - mobiel internet verbruikt 3x meer energie",
+        "Het verwijderen van ongebruikte code kan de laadtijd met 30% verbeteren",
+        "1GB dataverbruik staat gelijk aan 5 minuten autorijden",
+        "Dark mode kan het energieverbruik van OLED schermen met 60% verminderen"
+    ],
     
     /**
      * Format file sizes in human readable format
@@ -64,22 +76,23 @@ const Utils = {
         }
     },
 
-    /**
-     * Get grade color based on score
-     * @param {string} grade - Grade letter (A+, A, B+, etc.)
-     * @returns {string} CSS color value
-     */
-    getGradeColor(grade) {
-        const colors = {
-            'A+': '#4CAF50',
-            'A': '#8BC34A',
-            'B+': '#CDDC39',
-            'B': '#FFEB3B',
-            'C': '#FF9800',
-            'D': '#F44336'
-        };
-        return colors[grade] || '#9E9E9E';
-    },
+  /**
+ * Get grade color based on score - UPDATED FOR A+ TO F SCALE
+ * @param {string} grade - Grade letter (A+, A, B, C, D, E, F)
+ * @returns {string} CSS color value
+ */
+getGradeColor(grade) {
+    const colors = {
+        'A+': '#4CAF50',    // Excellent - Green
+        'A': '#8BC34A',     // Very Good - Light Green  
+        'B': '#CDDC39',     // Good - Lime Green
+        'C': '#FFEB3B',     // Average - Yellow
+        'D': '#FF9800',     // Poor - Orange
+        'E': '#FF5722',     // Very Poor - Deep Orange
+        'F': '#990a0a'      // Terrible - Red
+    };
+    return colors[grade] || '#9E9E9E';
+},
 
     /**
      * Get benchmark status color
@@ -91,7 +104,7 @@ const Utils = {
             'excellent': '#4CAF50',
             'good': '#66BB6A',
             'average': '#FFB74D',
-            'poor': '#F06292'
+            'poor': '#990a0a'
         };
         return colors[status] || '#9E9E9E';
     },
@@ -145,17 +158,74 @@ const Utils = {
     },
 
     /**
-     * Show loading state
+     * ENHANCED LOADING STATE with custom animation and rotating tips
      * @param {HTMLElement} element - Element to show loading in
      * @param {string} message - Loading message
      */
-    showLoading(element, message = 'Laden...') {
+    showLoading(element, message = 'Website wordt geanalyseerd...') {
+        // Get random tip to start with
+        const randomTip = this.climateTips[Math.floor(Math.random() * this.climateTips.length)];
+        
         element.innerHTML = `
-            <div class="loading-state">
-                <div class="loading-spinner">🔄</div>
-                <p>${message}</p>
+            <div class="enhanced-loading-state">
+                <div class="loading-animation">
+                    ${this.icons.loadingIcon}
+                </div>
+                <div class="loading-content">
+                    <h3 class="loading-title">${message}</h3>
+                    <p class="loading-description">Dit kan 5-10 seconden duren, afhankelijk van de grootte van de website.</p>
+                    <div class="climate-tip">
+                        <span class="tip-text">${randomTip}</span>
+                    </div>
+                </div>
             </div>
         `;
+
+        // Start tip rotation
+        this.startTipRotation();
+    },
+
+    /**
+     * Start rotating climate tips during loading
+     */
+    startTipRotation() {
+        // Clear any existing interval
+        if (this.tipInterval) {
+            clearInterval(this.tipInterval);
+        }
+
+        let currentTipIndex = 0;
+        
+        this.tipInterval = setInterval(() => {
+            const tipElement = document.querySelector('.tip-text');
+            if (!tipElement) {
+                clearInterval(this.tipInterval);
+                return;
+            }
+
+            // Fade out current tip
+            tipElement.style.opacity = '0';
+            
+            setTimeout(() => {
+                // Change to next tip
+                currentTipIndex = (currentTipIndex + 1) % this.climateTips.length;
+                tipElement.textContent = this.climateTips[currentTipIndex];
+                
+                // Fade in new tip
+                tipElement.style.opacity = '1';
+            }, 300); // Half fade duration
+            
+        }, 4000); // Change tip every 4 seconds
+    },
+
+    /**
+     * Stop tip rotation (called when loading ends)
+     */
+    stopTipRotation() {
+        if (this.tipInterval) {
+            clearInterval(this.tipInterval);
+            this.tipInterval = null;
+        }
     },
 
     /**

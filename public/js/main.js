@@ -93,16 +93,17 @@ async function handleAnalyzeClick() {
     }
 }
 
+
 /**
- * Main website analysis function
+ * Main website analysis function with enhanced loading
  * @param {string} url - Website URL to analyze
  */
 async function performAnalysis(url) {
     AppState.isAnalyzing = true;
     updateLoadingState(true);
     
-    // Show loading in results area
-    Utils.showLoading(DOM.resultsContainer, 'Website wordt geanalyseerd... Dit kan 5-10 seconden duren, afhankelijk van de grootte van de website.');
+    // Show enhanced loading with tips
+    Utils.showLoading(DOM.resultsContainer, 'Website wordt geanalyseerd');
     
     try {
         // Call API
@@ -112,6 +113,9 @@ async function performAnalysis(url) {
         AppState.currentResults = results;
         AppState.analysisHistory.unshift(results);
         
+        // Stop tip rotation when analysis is complete
+        Utils.stopTipRotation();
+        
         // Display results
         displayResults(results);
         
@@ -119,6 +123,10 @@ async function performAnalysis(url) {
         
     } catch (error) {
         console.error('Oh neen toch! De analyse is mislukt:', error);
+        
+        // Stop tip rotation on error too
+        Utils.stopTipRotation();
+        
         showError(error.message || 'Oops, er ging iets mis tijdens de analyse. Probeer het later opnieuw.');
         
     } finally {
@@ -630,7 +638,7 @@ const TEST_DATA = {
     co2PerVisit: 2.5,
     transferSize: 1500,
     performanceScore: 78,
-    grade: "B+",
+    grade: "F",
     domElements: 1200,
     httpRequests: 45,
     greenHosting: {
