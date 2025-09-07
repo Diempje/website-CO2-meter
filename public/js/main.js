@@ -1,6 +1,6 @@
 /**
  * Main Application Logic - Website CO2 Meter ENHANCED
- * Performance Score Focus + Visitor Impact + Enhanced UI
+ * Combined Environmental Impact Calculator with Visitor Scaling
  */
 
 // Application state
@@ -19,7 +19,6 @@ const DOM = {
     btnText: null,
     btnLoading: null
 };
-
 
 /**
  * Initialize the application
@@ -201,65 +200,104 @@ function generateHostingStatusHTML(greenHosting) {
 }
 
 /**
- * Generate ALL environmental comparisons HTML (no dropdown)
- * @param {Array} comparisons - Array of comparison objects
+ * Generate COMBINED environmental impact calculator with visitor scaling
+ * @param {number} co2PerVisit - CO2 per single visit in grams
+ * @param {number} selectedVisitors - Currently selected visitor count
  * @returns {string} HTML string
  */
-function generateAllComparisonsHTML(comparisons) {
+function generateCombinedImpactCalculatorHTML(co2PerVisit, selectedVisitors) {
+    // Calculate monthly and yearly CO2 based on selected visitors
+    const monthlyVisitors = selectedVisitors;
+    const yearlyVisitors = monthlyVisitors * 12;
+    const monthlyCO2 = co2PerVisit * monthlyVisitors; // grams per month
+    const yearlyCO2 = monthlyCO2 * 12; // grams per year
+    
+    // Get all environmental comparisons based on monthly CO2
+    const comparisons = Utils.getEnvironmentalComparison(monthlyCO2);
+    
+    // Calculate tree compensation (22kg CO2 per tree per year)
+    const treesNeeded = Math.max(1, Math.round((yearlyCO2 / 1000) / 22));
+    
+    const visitorOptions = [
+        { value: 1000, label: '1.000' },
+        { value: 10000, label: '10.000' },
+        { value: 100000, label: '100.000' }
+    ];
+    
     return `
-        <div class="comparison-section">
-            <h4>🌍 Milieu Impact Vergelijkingen</h4>
-            <div class="comparison-grid">
+        <div class="combined-impact-section">
+            <h4>${Utils.icons.impactIcon} Jaarlijkse milieu impact</h4>
+            <p class="impact-intro">Zie hoe de milieu-impact schaalt met meer website bezoekers per maand:</p>
+            
+            <div class="visitor-selector">
+                <label for="visitorSelect">Per 
+                    <select id="visitorSelect" onchange="updateImpactCalculation(this.value)" class="visitor-dropdown">
+                        ${visitorOptions.map(option => `
+                            <option value="${option.value}" ${option.value === selectedVisitors ? 'selected' : ''}>
+                                ${option.label}
+                            </option>
+                        `).join('')}
+                    </select>
+                maandelijkse bezoekers:</label>
+            </div>
+            
+            <div class="impact-summary">
+                <div class="co2-yearly">
+                    <strong>${Utils.formatCO2(yearlyCO2)} per jaar</strong>
+                    <small>(${Utils.formatCO2(monthlyCO2)} per maand)</small>
+                </div>
+            </div>
+            
+            <div class="impact-comparisons">
                 ${comparisons.map(comp => `
-                    <div class="comparison-item">
-                        <span class="comparison-icon">${comp.icon}</span>
-                        <span class="comparison-text">${comp.text}</span>
+                    <div class="impact-item">
+                        <span class="impact-icon">${comp.icon}</span>
+                        <span class="impact-text">${comp.text}</span>
                     </div>
                 `).join('')}
+                
+                <div class="impact-item">
+                    <span class="impact-icon">${Utils.icons.treeIcon}</span>
+                    <span class="impact-text">${treesNeeded} bomen nodig ter compensatie</span>
+                </div>
+            </div>
+            
+            <div class="impact-note">
+                <small>${Utils.icons.bulletPoint} Deze berekeningen zijn gebaseerd op ${selectedVisitors.toLocaleString('nl-NL')} unieke bezoekers per maand</small>
             </div>
         </div>
     `;
 }
 
 /**
- * Generate visitor impact scaling HTML
- * @param {Array} visitorImpact - Visitor impact data
- * @param {number} selectedScale - Currently selected scale
- * @returns {string} HTML string
+ * Update impact calculation when visitor count changes
+ * @param {string} visitorCount - Selected visitor count as string
  */
-function generateVisitorImpactHTML(visitorImpact, selectedScale) {
-    return `
-        <div class="visitor-impact-section">
-            <h4>👥 Impact bij Verschillende Bezoekers Aantallen</h4>
-            <p class="visitor-intro">Zie hoe de milieu-impact schaalt met meer website bezoekers per maand:</p>
+function updateImpactCalculation(visitorCount) {
+    const visitors = parseInt(visitorCount);
+    AppState.selectedVisitorScale = visitors;
+    
+    if (AppState.currentResults) {
+        // Find the impact section and update it
+        const impactSection = document.querySelector('.combined-impact-section');
+        if (impactSection) {
+            // Add smooth transition
+            impactSection.style.opacity = '0.7';
             
-            <div class="visitor-scales">
-                ${visitorImpact.map((scale, index) => `
-                    <div class="visitor-scale-card ${scale.visitors === selectedScale ? 'active' : ''}" 
-                         onclick="updateVisitorScale(${scale.visitors})" 
-                         tabindex="0">
-                        <div class="visitor-count">
-                            <strong>${scale.label}</strong>
-                            <span class="visitor-co2">${Utils.formatCO2(scale.totalCO2Monthly)} per maand</span>
-                        </div>
-                        <div class="visitor-yearly">
-                            <strong>${scale.totalCO2Yearly}kg CO2 per jaar</strong>
-                        </div>
-                        <div class="visitor-comparisons">
-                            <div class="visitor-comp-item">
-                                <span class="comp-icon">🌳</span>
-                                <span>${scale.treesNeeded} bomen nodig voor compensatie</span>
-                            </div>
-                            <div class="visitor-comp-item">
-                                <span class="comp-icon">🚗</span>
-                                <span>${scale.kmDriving}km autorijden equivalent</span>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
+            setTimeout(() => {
+                impactSection.outerHTML = generateCombinedImpactCalculatorHTML(
+                    AppState.currentResults.co2PerVisit, 
+                    visitors
+                );
+                
+                // Restore opacity
+                const newImpactSection = document.querySelector('.combined-impact-section');
+                if (newImpactSection) {
+                    newImpactSection.style.opacity = '1';
+                }
+            }, 150);
+        }
+    }
 }
 
 /**
@@ -272,21 +310,11 @@ function generateEnhancedBenchmarkHTML(benchmarks) {
     
     const getStatusIcon = (status) => {
         switch(status) {
-            case 'excellent': return '🏆';
-            case 'good': return '✅';
-            case 'average': return '⚖️';
-            case 'poor': return '⚠️';
-            default: return '📊';
-        }
-    };
-    
-    const getStatusColor = (status) => {
-        switch(status) {
-            case 'excellent': return 'var(--success-color)';
-            case 'good': return 'var(--accent-green)';
-            case 'average': return 'var(--warning-color)';
-            case 'poor': return 'var(--error-color)';
-            default: return 'var(--text-muted)';
+            case 'excellent': return Utils.icons.excellentIcon;
+            case 'good': return Utils.icons.goodIcon;
+            case 'average': return Utils.icons.averageIcon;
+            case 'poor': return Utils.icons.poorIcon;
+            default: return Utils.icons.bulletPoint;
         }
     };
     
@@ -341,13 +369,13 @@ function generateEnhancedBenchmarkHTML(benchmarks) {
     
     return `
         <div class="benchmark-section">
-            <h4>📊 Benchmark Vergelijkingen</h4>
+            <h4> ${Utils.icons.benchmarkIcon} Benchmark vergelijkingen</h4>
             <div class="benchmark-grid">
                 ${benchmarkItems.map(item => `
                     <div class="benchmark-item ${item.data.status}">
                         <div class="benchmark-metric">
                             <span class="benchmark-label">${item.label}</span>
-                            <span class="benchmark-value" style="color: ${getStatusColor(item.data.status)}">
+                            <span class="benchmark-value">
                                 ${getStatusIcon(item.data.status)} ${item.value}
                             </span>
                         </div>
@@ -438,7 +466,7 @@ function generateOptimizationTipsHTML(optimizations) {
     
     return `
         <div class="tip-box">
-            <span class="tip-icon">💡</span>
+            <span class="tip-icon">${Utils.icons.ledIcon}</span>
             <strong>Optimalisatie Tip:</strong> 
             Je kunt ${Utils.formatBytes(optimizations.canSave * 1024)} besparen door ongebruikte code te verwijderen!
             Dit zou de CO2 uitstoot met ongeveer ${co2Savings}g kunnen verminderen per bezoek.
@@ -449,45 +477,15 @@ function generateOptimizationTipsHTML(optimizations) {
 }
 
 /**
- * Update visitor scale selection
- * @param {number} visitors - Number of visitors
- */
-function updateVisitorScale(visitors) {
-    AppState.selectedVisitorScale = visitors;
-    
-    if (AppState.currentResults) {
-        // Add smooth transition
-        const visitorSection = document.querySelector('.visitor-impact-section');
-        if (visitorSection) {
-            visitorSection.style.opacity = '0.7';
-            
-            setTimeout(() => {
-                visitorSection.outerHTML = generateVisitorImpactHTML(
-                    AppState.currentResults.visitorImpact, 
-                    AppState.selectedVisitorScale
-                );
-                
-                // Restore opacity
-                const newVisitorSection = document.querySelector('.visitor-impact-section');
-                if (newVisitorSection) {
-                    newVisitorSection.style.opacity = '1';
-                }
-            }, 150);
-        }
-    }
-}
-
-/**
- * Display analysis results with PERFORMANCE FOCUS
+ * Display analysis results with COMBINED IMPACT CALCULATOR
  * @param {Object} data - Analysis results
  */
 function displayResults(data) {
     const displayUrl = Utils.formatURLForDisplay(data.url);
-    const comparisons = Utils.getEnvironmentalComparison(data.co2PerVisit);
     
     DOM.resultsContainer.innerHTML = `
         <div class="result-card">
-            <h3>${Utils.icons.bulletPoint} Analyse Resultaten voor: ${Utils.sanitizeHTML(displayUrl)}</h3>
+            <h3>${Utils.icons.bulletPoint} Analyse resultaten voor: ${Utils.sanitizeHTML(displayUrl)}</h3>
             
             ${generatePerformanceHeroHTML(data)}
             
@@ -497,15 +495,13 @@ function displayResults(data) {
             
             ${generateEnhancedBenchmarkHTML(data.benchmarks)}
             
-            ${generateAllComparisonsHTML(comparisons)}
-            
-            ${generateVisitorImpactHTML(data.visitorImpact, AppState.selectedVisitorScale)}
+            ${generateCombinedImpactCalculatorHTML(data.co2PerVisit, AppState.selectedVisitorScale)}
             
             ${generateOptimizationTipsHTML(data.optimizations)}
             
             <div class="result-actions">
-                <button onclick="shareResults()" class="share-btn">📤 Deel Resultaten</button>
-                <button onclick="analyzeAnother()" class="secondary-btn">🔄 Analyseer Andere Website</button>
+                <button onclick="shareResults()" class="share-btn">${Utils.icons.shareIcon} Deel resultaten</button>
+                <button onclick="analyzeAnother()" class="secondary-btn">${Utils.icons.analyseerIcon} Analyseer een andere website</button>
             </div>
         </div>
     `;
@@ -523,7 +519,7 @@ function displayResults(data) {
 function showError(message) {
     DOM.resultsContainer.innerHTML = `
         <div class="error-card">
-            <h3>Fuck,Er ging iets mis</h3>
+            <h3>Er ging iets mis</h3>
             <p>${Utils.sanitizeHTML(message)}</p>
             <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
                 Controleer of de URL correct is en probeer opnieuw.
@@ -557,9 +553,10 @@ function validateURLInput() {
 async function shareResults() {
     if (!AppState.currentResults) return;
     
-    const selectedImpact = AppState.currentResults.visitorImpact.find(
-        scale => scale.visitors === AppState.selectedVisitorScale
-    ) || AppState.currentResults.visitorImpact[1];
+    const monthlyCO2 = AppState.currentResults.co2PerVisit * AppState.selectedVisitorScale;
+    const yearlyCO2 = monthlyCO2 * 12;
+    const treesNeeded = Math.max(1, Math.round((yearlyCO2 / 1000) / 22));
+    const kmDriving = Math.round((monthlyCO2 / 404) * 100) / 100;
     
     const shareText = `🌱 Website CO2 Analyse van ${AppState.currentResults.url}:
 
@@ -567,9 +564,10 @@ async function shareResults() {
 ✅ CO2 uitstoot: ${Utils.formatCO2(AppState.currentResults.co2PerVisit)} per bezoek
 📁 Website grootte: ${Utils.formatBytes(AppState.currentResults.transferSize * 1024)}
 
-👥 Bij ${selectedImpact.label}:
-🌳 ${selectedImpact.treesNeeded} bomen nodig voor compensatie
-🚗 ${selectedImpact.kmDriving}km autorijden equivalent
+👥 Bij ${AppState.selectedVisitorScale.toLocaleString('nl-NL')} bezoekers/maand:
+🌍 ${Utils.formatCO2(yearlyCO2)} CO2 per jaar
+🌳 ${treesNeeded} bomen nodig voor compensatie
+🚗 ${kmDriving}km autorijden equivalent per maand
 
 ${AppState.currentResults.greenHosting.isGreen ? '🌱 Gebruikt groene hosting!' : '⚡ Gebruikt grijze hosting'}
 
@@ -615,7 +613,7 @@ function analyzeAnother() {
 }
 
 // Make functions globally available
-window.updateVisitorScale = updateVisitorScale;
+window.updateImpactCalculation = updateImpactCalculation;
 window.shareResults = shareResults;
 window.analyzeAnother = analyzeAnother;
 
@@ -626,16 +624,13 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
-
-
-// Development helper - Voeg test button toe
 // DEVELOPMENT ONLY - Auto-load test data
 const TEST_DATA = {
     url: "https://example.com",
-    co2PerVisit: 5,
+    co2PerVisit: 2.5,
     transferSize: 1500,
-    performanceScore: 15,
-    grade: "D",
+    performanceScore: 78,
+    grade: "B+",
     domElements: 1200,
     httpRequests: 45,
     greenHosting: {
@@ -651,16 +646,11 @@ const TEST_DATA = {
     },
     benchmarks: {
         pageSize: { value: 1500, average: 2048, status: 'good', percentage: 27, message: '27% kleiner dan gemiddeld' },
-        co2: { value: 5, average: 0.8, status: 'average', percentage: 50, message: '50% meer CO2 dan gemiddeld' },
+        co2: { value: 2.5, average: 0.8, status: 'poor', percentage: 212, message: '212% meer CO2 dan gemiddeld' },
         performance: { value: 78, average: 65, status: 'good', percentage: 20, message: '20% beter dan gemiddeld' },
         httpRequests: { value: 45, average: 70, status: 'excellent', percentage: 36, message: '36% minder requests dan gemiddeld' },
         domElements: { value: 1200, average: 1500, status: 'good', percentage: 20, message: '20% minder elementen dan gemiddeld' }
-    },
-    visitorImpact: [
-        { visitors: 1000, label: "1.000 bezoekers/maand", totalCO2Monthly: 1200, totalCO2Yearly: 14.4, treesNeeded: 1, kmDriving: 35.6 },
-        { visitors: 10000, label: "10.000 bezoekers/maand", totalCO2Monthly: 12000, totalCO2Yearly: 144, treesNeeded: 7, kmDriving: 356 },
-        { visitors: 100000, label: "100.000 bezoekers/maand", totalCO2Monthly: 120000, totalCO2Yearly: 1440, treesNeeded: 66, kmDriving: 3564 }
-    ]
+    }
 };
 
 // Auto-load test data op localhost

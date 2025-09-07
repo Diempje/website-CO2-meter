@@ -14,6 +14,21 @@ const Utils = {
         DOMIcon: '<img src="/images/dom_icon.svg" alt="DOM" class="bullet-icon">',
         requestsIcon: '<img src="/images/requests_icon.svg" alt="Verzoeken" class="bullet-icon">',
         downArrow: '<img src="/images/down_arrows_icon.svg" alt="Daling" class="bullet-icon">',
+        benchmarkIcon: '<img src="/images/benchmark_icon.svg" alt="Benchmark" class="bullet-icon">',
+        excellentIcon: '<img src="/images/excellent_icon.svg" alt="Uitstekend" class="bullet-icon">',
+        goodIcon: '<img src="/images/checkmark_icon.svg" alt="Goed" class="bullet-icon">',
+        averageIcon: '<img src="/images/average_icon.svg" alt="Gemiddeld" class="bullet-icon">',
+        poorIcon: '<img src="/images/poor_icon.svg" alt="Slecht" class="bullet-icon">',
+        impactIcon: '<img src="/images/jaarlijkse_impact_icon.svg" alt="Impact" class="bullet-icon">',
+        carIcon: '<img src="/images/car_icon.svg" alt="Auto" class="benchmark-icon">',
+        phoneIcon: '<img src="/images/phone_icon.svg" alt="Telefoon" class="benchmark-icon">',
+        coffeeIcon: '<img src="/images/coffee_icon.svg" alt="Koffie" class="benchmark-icon">',
+        ledIcon: '<img src="/images/led_icon.svg" alt="LED" class="benchmark-icon">',
+        bagIcon: '<img src="/images/bag_icon.svg" alt="Tas" class="benchmark-icon">',
+        treeIcon: '<img src="/images/tree_icon.svg" alt="Boom" class="benchmark-icon">',
+        shareIcon: '<img src="/images/share_icon.svg" alt="Delen" class="bullet-icon">',
+        analyseerIcon: '<img src="/images/analyse_icon.svg" alt="Analyseer" class="bullet-icon">'
+
     },
     
     /**
@@ -173,35 +188,35 @@ const Utils = {
                 activity: 'autorijden',
                 factor: 404, // 404g CO2 per km
                 unit: 'km',
-                icon: '🚗',
+                icon: Utils.icons.carIcon,
                 description: 'Vergelijkbaar met autorijden'
             },
             {
                 activity: 'smartphone opladen',
                 factor: 8.5, // 8.5g CO2 per charge
                 unit: 'x',
-                icon: '📱',
+                icon: Utils.icons.phoneIcon,
                 description: 'Keer je smartphone opladen'
             },
             {
                 activity: 'kop koffie',
                 factor: 21, // 21g CO2 per cup
                 unit: 'koppen',
-                icon: '☕',
+                icon: Utils.icons.coffeeIcon,
                 description: 'Koppen koffie zetten'
             },
             {
                 activity: 'LED lamp',
                 factor: 0.5, // 0.5g CO2 per hour
                 unit: 'uur',
-                icon: '💡',
+                icon: Utils.icons.ledIcon,
                 description: 'Uur LED lamp aan laten'
             },
             {
                 activity: 'plastic zak',
                 factor: 6, // 6g CO2 per plastic bag
                 unit: 'zakken',
-                icon: '🛍️',
+                icon: Utils.icons.bagIcon,
                 description: 'Plastic zakken produceren'
             }
         ];
