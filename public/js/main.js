@@ -251,8 +251,149 @@ function validateURLInput() {
 }
 
 /**
- * JOUW ORIGINELE FUNCTIES - Exact zoals je ze had, met kleine accessibility verbeteringen
+ * STAP 2: Hero Section Update - Van Performance naar Sustainability
+ * 
+ * VOORZICHTIGE AANPASSING van generatePerformanceHeroHTML() in main.js
+ * - Behoudt ALLE styling en CSS classes
+ * - Behoudt ALLE Utils.icons 
+ * - Wijzigt ALLEEN data source (Performance → Sustainability)
  */
+
+/**
+ * Generate ENHANCED Sustainability Hero HTML - BEHOUDT ALLE STYLING
+ * @param {Object} data - Analysis results met nieuwe sustainability score
+ * @returns {string} HTML string - IDENTIEKE LAYOUT
+ */
+function generateSustainabilityHeroHTML(data) {
+    // NIEUWE: Bereken sustainability score
+    const sustainabilityResult = SustainabilityScorer.calculateSustainabilityScore(data);
+    
+    // BEHOUDEN: Originele gradeColor functie
+    const gradeColor = Utils.getGradeColor(sustainabilityResult.grade);
+    
+    // BEHOUDEN: Originele benchmark data (voor vergelijking sectie)
+    const performanceBenchmark = data.benchmarks.performance;
+    const co2Benchmark = data.benchmarks.co2;
+    
+    // NIEUWE: Sustainability score position (in plaats van performance)
+    const scorePosition = Math.max(0, Math.min(100, 100 - sustainabilityResult.sustainabilityScore));
+    
+    // NIEUWE: Check contradiction tussen sustainability en andere metrics
+    const hasContradiction = (sustainabilityResult.sustainabilityScore >= 80 && co2Benchmark.status === 'poor') || 
+                            (sustainabilityResult.sustainabilityScore >= 70 && data.transferSize > 2500);
+    
+    return `
+        <div class="performance-hero">
+            <div class="performance-score-display">
+                <div class="grade-display" style="color: ${gradeColor};">
+                    <svg class="grade-background" viewBox="0 0 133.13 130.03" style="fill: ${gradeColor};" aria-hidden="true">
+                        <path d="M85.62,7.67C42.39,2.32-3.33,38.39,9.43,84.2c6.19,21.76,26.9,34.73,48.78,38,12.26,1.99,25.14,1.46,35.95-3.44,13.15-5.74,21.89-18.34,25.39-32.01,7.35-28.95,2.83-74.56-33.75-79.05l-.19-.03Z"/>
+                    </svg>
+                    <span class="grade-letter">${sustainabilityResult.grade}</span>
+                </div>
+                
+                <div class="score-explanation">
+                    <h4>Jouw duurzaamheidsscore</h4>
+                    <p>Gebaseerd op <strong>7 factoren</strong></p>
+                </div>
+                
+                <div class="score-display">
+                    <span class="score-number">${sustainabilityResult.sustainabilityScore}</span>
+                    <span class="score-label">/100</span>
+                </div>
+                <div class="score-bar-container">
+                    <div class="score-labels">
+                        <span>A+</span>
+                        <span>A</span>
+                        <span>B</span>
+                        <span>C</span>
+                        <span>D</span>
+                        <span>E</span>
+                        <span>F</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-marker" style="left: ${scorePosition}%;"></div>
+                    </div>
+                    <div class="score-indicator-text">Jouw website</div>
+                </div>
+                <div class="sustainability-assessment">
+                    <p><strong>${sustainabilityResult.insights.assessment}</strong></p>
+                </div>
+                ${hasContradiction ? `
+                    <div class="contradiction-notice">
+                        <h5>⚖️ Let op: Sustainability vs Performance</h5>
+                        <p>Deze website heeft een <strong>goede sustainability score</strong> maar verbruikt nog steeds <strong>veel data</strong>. 
+                        Er zijn nog optimalisatie kansen!</p>
+                    </div>
+                ` : ''}
+                
+                <div class="sustainability-score">
+                    <h4>Duurzaamheidsfactoren</h4>
+                    <p><strong>Gebaseerd op:</strong> Data efficiency, groene hosting, resource gebruik</p>
+                    <div class="dual-metrics">
+                        <div class="metric-item">
+                            ${Utils.icons.co2} <strong>${Utils.formatCO2(data.co2PerVisit)}</strong> per bezoek
+                        </div>
+                        <div class="metric-item">
+                            ${Utils.icons.pageIcon} <strong>${Utils.formatBytes(data.transferSize * 1024)}</strong> data
+                        </div>
+                        <div class="metric-item">
+                            ${data.greenHosting.isGreen ? Utils.icons.greenHosting : Utils.icons.greyHosting} 
+                            <strong>${data.greenHosting.isGreen ? 'Groene' : 'Grijze'}</strong> hosting
+                        </div>
+                        <div class="metric-item">
+                            ${Utils.icons.upGraphIcon}<strong>Prestaties: ${data.performanceScore}/100</strong>
+                        </div>
+                    </div>
+                </div>          
+            
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * STAP 2B: Update de main displayResults functie
+ * 
+ * MINIMALE WIJZIGING in main.js - vervang alleen de functie aanroep:
+ * 
+ * VAN: ${generatePerformanceHeroHTML(data)}
+ * NAAR: ${generateSustainabilityHeroHTML(data)}
+ */
+
+// Deze wijziging in main.js displayResults functie:
+function displayResults(data) {
+    const displayUrl = Utils.formatURLForDisplay(data.url);
+    const resultsContainer = DOM.get('results');
+    
+    resultsContainer.innerHTML = `
+        <div class="result-card">
+            <h3>${Utils.icons.bulletPoint} Analyse resultaten voor: ${Utils.sanitizeHTML(displayUrl)}</h3>
+            
+            ${generateSustainabilityHeroHTML(data)}
+            ${generateEducationalSectionHTML(data)}
+            ${generateHostingStatusHTML(data.greenHosting)}
+            ${generateDetailedMetricsHTML(data)}
+            ${generateEnhancedBenchmarkHTML(data.benchmarks)}
+            ${generateCombinedImpactCalculatorHTML(data.co2PerVisit, AppState.selectedVisitorScale)}
+            ${generateOptimizationTipsHTML(data.optimizations)}
+            
+            <div class="result-actions">
+                <button onclick="shareResults()" class="share-btn" aria-label="Deel analyse resultaten">
+                    ${Utils.icons.shareIcon} Deel resultaten
+                </button>
+                <button onclick="analyzeAnother()" class="secondary-btn" aria-label="Analyseer nieuwe website">
+                    ${Utils.icons.analyseerIcon} Analyseer een andere website
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Enhanced scroll with performance optimization
+    setTimeout(() => {
+        Utils.scrollTo('.result-card', 100);
+    }, 100);
+}
 
 /**
  * Generate ENHANCED Performance Hero HTML with clear explanation
@@ -308,7 +449,7 @@ function generatePerformanceHeroHTML(data) {
                 
                 ${hasContradiction ? `
                     <div class="contradiction-notice">
-                        <h5>⚖️ Let op: Performance vs Duurzaamheid</h5>
+                        <h5>Let op! Performance vs Duurzaamheid</h5>
                         <p>Deze website laadt <strong>snel</strong> maar gebruikt <strong>veel data</strong>. 
                         Performance en duurzaamheid zijn twee verschillende dingen!</p>
                     </div>
@@ -615,21 +756,21 @@ function generateEducationalSectionHTML(data) {
     
     return `
         <div class="educational-info">
-            <h4>🤔 Performance vs Duurzaamheid: Wat is het verschil?</h4>
+            <h4>Prestaties vs Duurzaamheid: Wat is nu eigenlijk het verschil?</h4>
             
             <div class="comparison-grid">
                 <div class="comparison-item">
-                    <h5>📈 Performance Score</h5>
+                    <h5>${Utils.icons.upGraphIcon} Prestatie Score</h5>
                     <ul>
-                        <li><strong>Meet:</strong> Hoe snel content zichtbaar wordt</li>
-                        <li><strong>Focus:</strong> User Experience</li>
+                        <li><strong>Meet:</strong> Hoe snel de inhoud zichtbaar wordt</li>
+                        <li><strong>Focus:</strong> Gebruikerservaring</li>
                         <li><strong>Gebruikt:</strong> Core Web Vitals metrics</li>
                         <li><strong>Voorbeeld:</strong> Pagina laadt in 2 seconden</li>
                     </ul>
                 </div>
                 
                 <div class="comparison-item">
-                    <h5>🌍 CO2 Impact</h5>
+                    <h5>${Utils.icons.greenHosting} CO2 Impact</h5>
                     <ul>
                         <li><strong>Meet:</strong> Data verbruik en energie</li>
                         <li><strong>Focus:</strong> Milieu impact</li>
@@ -652,7 +793,7 @@ function generateEducationalSectionHTML(data) {
             ` : ''}
             
             <div class="key-takeaway">
-                <p><strong>${Utils.icons.bulletPoint} Belangrijk:</strong> Een hoge performance score betekent niet automatisch lage CO2 uitstoot. 
+                <p><strong>${Utils.icons.bulletPoint} Belangrijk:</strong> Een hoge prestatie score betekent niet automatisch een lage CO2 uitstoot! 
                 Ideaal is een website die <em>zowel</em> snel <em>als</em> duurzaam is!</p>
             </div>
         </div>
@@ -706,42 +847,7 @@ function generateOptimizationTipsHTML(optimizations) {
     `;
 }
 
-/**
- * Display analysis results with EDUCATIONAL CONTEXT
- * @param {Object} data - Analysis results
- */
-function displayResults(data) {
-    const displayUrl = Utils.formatURLForDisplay(data.url);
-    const resultsContainer = DOM.get('results');
-    
-    resultsContainer.innerHTML = `
-        <div class="result-card">
-            <h3>${Utils.icons.bulletPoint} Analyse resultaten voor: ${Utils.sanitizeHTML(displayUrl)}</h3>
-            
-            ${generatePerformanceHeroHTML(data)}
-            ${generateEducationalSectionHTML(data)}
-            ${generateHostingStatusHTML(data.greenHosting)}
-            ${generateDetailedMetricsHTML(data)}
-            ${generateEnhancedBenchmarkHTML(data.benchmarks)}
-            ${generateCombinedImpactCalculatorHTML(data.co2PerVisit, AppState.selectedVisitorScale)}
-            ${generateOptimizationTipsHTML(data.optimizations)}
-            
-            <div class="result-actions">
-                <button onclick="shareResults()" class="share-btn" aria-label="Deel analyse resultaten">
-                    ${Utils.icons.shareIcon} Deel resultaten
-                </button>
-                <button onclick="analyzeAnother()" class="secondary-btn" aria-label="Analyseer nieuwe website">
-                    ${Utils.icons.analyseerIcon} Analyseer een andere website
-                </button>
-            </div>
-        </div>
-    `;
-    
-    // Enhanced scroll with performance optimization
-    setTimeout(() => {
-        Utils.scrollTo('.result-card', 100);
-    }, 100);
-}
+
 
 /**
  * ENHANCED error handling with better UX

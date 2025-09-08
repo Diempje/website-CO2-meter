@@ -243,31 +243,11 @@
 
 .performance-context {
     display: flex;
-    justify-content: center;
+    justify-content: stretch;
     gap: var(--spacing-lg);
     flex-wrap: wrap;
 }
 
-.context-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-xs);
-    background: rgba(254, 253, 199, 0.1);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-}
-
-.context-icon {
-    font-size: 1.2em;
-    display: inline-block;
-}
-
-.context-text {
-    font-weight: 500;
-    color: var(--text-color);
-}
 
 /* COMBINED IMPACT CALCULATOR SECTION - NEW */
 .combined-impact-section {
@@ -626,6 +606,7 @@
     transition: var(--transition);
     min-width: 160px;
     text-align: center;
+    flex: 1;
 }
 
 .share-btn {
@@ -856,7 +837,7 @@
     border-radius: var(--border-radius);
     padding: var(--spacing-sm);
     margin: var(--spacing-md) var(--spacing-md);
-    text-align: left;
+    text-align: center;
 }
 
 .score-explanation h4 {
@@ -1242,14 +1223,6 @@
         font-size: var(--font-size-base);
     }
     
-    .performance-context {
-        flex-direction: column;
-        gap: var(--spacing-sm);
-    }
-    
-    .context-item {
-        justify-content: center;
-    }
     
     .combined-impact-section {
         padding: var(--spacing-md);
