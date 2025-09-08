@@ -28,7 +28,8 @@ const Utils = {
         treeIcon: '<img src="/images/tree_icon.svg" alt="Boom" class="benchmark-icon">',
         shareIcon: '<img src="/images/share_icon.svg" alt="Delen" class="bullet-icon">',
         analyseerIcon: '<img src="/images/analyse_icon.svg" alt="Analyseer" class="bullet-icon">',
-        loadingIcon: '<img src="/images/analyse_icon.svg" alt="Analyseren" class="loading-icon">'
+        loadingIcon: '<img src="/images/analyse_icon.svg" alt="Analyseren" class="loading-icon">',
+        upGraphIcon: '<img src="/images/up_graph_icon.svg" alt="Verbetering" class="bullet-icon">'
     },
 
     // CLIMATE IMPACT TIPS - Easy to modify!

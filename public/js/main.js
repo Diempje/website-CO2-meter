@@ -151,7 +151,7 @@ function updateLoadingState(isLoading) {
 }
 
 /**
- * Generate PROMINENT Performance Score HTML - MAIN FOCUS
+ * Generate ENHANCED Performance Hero HTML with clear explanation
  * @param {Object} data - Analysis results
  * @returns {string} HTML string
  */
@@ -160,28 +160,67 @@ function generatePerformanceHeroHTML(data) {
     const performanceBenchmark = data.benchmarks.performance;
     const co2Benchmark = data.benchmarks.co2;
     
+    // Calculate score position on the bar (0-100 scale mapped to 0-100%)
+    const scorePosition = Math.max(0, Math.min(100, 100 - data.performanceScore));
+    
+    // Determine if there's a contradiction between performance and sustainability
+    const hasContradiction = (data.performanceScore >= 80 && co2Benchmark.status === 'poor') || 
+                            (data.performanceScore >= 70 && data.transferSize > 2500);
+    
     return `
         <div class="performance-hero">
             <div class="performance-score-display">
                 <div class="grade-display" style="color: ${gradeColor};">
-                    ${data.grade}
+                    <svg class="grade-background" viewBox="0 0 133.13 130.03" style="fill: ${gradeColor};">
+                        <path d="M85.62,7.67C42.39,2.32-3.33,38.39,9.43,84.2c6.19,21.76,26.9,34.73,48.78,38,12.26,1.99,25.14,1.46,35.95-3.44,13.15-5.74,21.89-18.34,25.39-32.01,7.35-28.95,2.83-74.56-33.75-79.05l-.19-.03Z"/>
+                    </svg>
+                    <span class="grade-letter">${data.grade}</span>
                 </div>
+                
+                <div class="score-explanation">
+                    <h4>📈 Performance Score (Google)</h4>
+                    <p><strong>Meet:</strong> Hoe snel content zichtbaar wordt voor gebruikers</p>
+                </div>
+                
                 <div class="score-display">
                     <span class="score-number">${data.performanceScore}</span>
                     <span class="score-label">/100</span>
                 </div>
-                <div class="performance-subtitle">
-                    Dit is ${performanceBenchmark.percentage}% ${performanceBenchmark.percentage > 0 && data.performanceScore >= 65 ? 'beter' : 'slechter'} dan het gemiddelde van ${co2Benchmark.average}g CO2 per pagina bezoek
+                <div class="score-bar-container">
+                    <div class="score-labels">
+                        <span>A+</span>
+                        <span>A</span>
+                        <span>B</span>
+                        <span>C</span>
+                        <span>D</span>
+                        <span>E</span>
+                        <span>F</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-marker" style="left: ${scorePosition}%;"></div>
+                    </div>
+                    <div class="score-indicator-text">Jouw website</div>
                 </div>
-            </div>
-            <div class="performance-context">
-                <div class="context-item context-text">
-                    ${Utils.icons.co2}
-                    ${Utils.formatCO2(data.co2PerVisit)} CO2 per bezoek
-                </div>
-                <div class="context-item">
-                    ${Utils.icons.pageIcon}
-                    <span class="context-text">${Utils.formatBytes(data.transferSize * 1024)} pagina grootte</span>
+                
+                ${hasContradiction ? `
+                    <div class="contradiction-notice">
+                        <h5>⚖️ Let op: Performance vs Duurzaamheid</h5>
+                        <p>Deze website laadt <strong>snel</strong> maar gebruikt <strong>veel data</strong>. 
+                        Performance en duurzaamheid zijn twee verschillende dingen!</p>
+                    </div>
+                ` : ''}
+                
+                <div class="sustainability-score">
+                    <h4>🌍 Duurzaamheids Impact</h4>
+                    <p><strong>Meet:</strong> CO2 uitstoot en resource verbruik</p>
+                    <div class="dual-metrics">
+                        <div class="metric-item">
+                            ${Utils.icons.co2} <strong>${Utils.formatCO2(data.co2PerVisit)}</strong> per bezoek
+                        </div>
+                        <div class="metric-item">
+                            ${Utils.icons.pageIcon} <strong>${Utils.formatBytes(data.transferSize * 1024)}</strong> data
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -463,29 +502,146 @@ function generateDetailedMetricsHTML(data) {
 }
 
 /**
- * Generate optimization tips HTML
+ * Generate optimization tips HTML with detailed unused CSS/JS breakdown
  * @param {Object} optimizations - Optimization data
  * @returns {string} HTML string
  */
 function generateOptimizationTipsHTML(optimizations) {
-    if (optimizations.canSave <= 5) return ''; // Don't show tips if savings are minimal
+    if (optimizations.canSave <= 5 && optimizations.unusedCSS <= 5 && optimizations.unusedJS <= 5) {
+        return ''; // Don't show tips if savings are minimal
+    }
     
     const co2Savings = Math.round((optimizations.canSave / 1024) * 0.8 * 100) / 100; // Rough estimate
     
+    let optimizationDetails = [];
+    
+    if (optimizations.unusedCSS > 0) {
+        optimizationDetails.push(`• <strong>${optimizations.unusedCSS}KB ongebruikte CSS</strong> - Verwijder ongebruikte stylesheets`);
+    }
+    
+    if (optimizations.unusedJS > 0) {
+        optimizationDetails.push(`• <strong>${optimizations.unusedJS}KB ongebruikte JavaScript</strong> - Verwijder ongebruikte scripts`);
+    }
+    
+    if (optimizations.imageOptimizationScore < 0.8) {
+        optimizationDetails.push(`• <strong>Afbeeldingen optimaliseren</strong> - Comprimeer en converteer naar moderne formaten`);
+    }
+    
     return `
         <div class="tip-box">
-            <span class="tip-icon">${Utils.icons.ledIcon}</span>
-            <strong>Optimalisatie Tip:</strong> 
-            Je kunt ${Utils.formatBytes(optimizations.canSave * 1024)} besparen door ongebruikte code te verwijderen!
-            Dit zou de CO2 uitstoot met ongeveer ${co2Savings}g kunnen verminderen per bezoek.
-            ${optimizations.unusedCSS > 0 ? `<br>• ${optimizations.unusedCSS}KB ongebruikte CSS` : ''}
-            ${optimizations.unusedJS > 0 ? `<br>• ${optimizations.unusedJS}KB ongebruikte JavaScript` : ''}
+            <span class="tip-icon">${Utils.icons.upGraphIcon}</span>
+            <h6>Optimalisatie Kansen:</h6>
+            <br>Je kan ${Utils.formatBytes(optimizations.canSave * 1024)} besparen door ongebruikte code te verwijderen!
+            <br>Dit zou de CO2 uitstoot met ongeveer <strong>${co2Savings}g</strong> kunnen verminderen per bezoek.
+            
+            ${optimizationDetails.length > 0 ? `
+                <div class="optimization-breakdown">
+                    <h6>Specifieke verbeteringen:</h6>
+                    ${optimizationDetails.map(detail => `<div class="optimization-item">${detail}</div>`).join('')}
+                </div>
+            ` : ''}
+            
+            <div class="optimization-impact">
+                <small><strong>Impact:</strong> Minder data = snellere website + lagere hosting kosten + minder CO2</small>
+            </div>
         </div>
     `;
 }
 
 /**
- * Display analysis results with COMBINED IMPACT CALCULATOR
+ * Generate benchmark section with better context
+ * @param {Object} benchmarks - Benchmark data
+ * @returns {string} HTML string
+ */
+function generateEnhancedBenchmarkHTML(benchmarks) {
+    if (!benchmarks) return '';
+    
+    const getStatusIcon = (status) => {
+        switch(status) {
+            case 'excellent': return Utils.icons.excellentIcon;
+            case 'good': return Utils.icons.goodIcon;
+            case 'average': return Utils.icons.averageIcon;
+            case 'poor': return Utils.icons.poorIcon;
+            default: return Utils.icons.bulletPoint;
+        }
+    };
+    
+    const benchmarkItems = [];
+    
+    // Always include these core benchmarks
+    if (benchmarks.pageSize) {
+        benchmarkItems.push({
+            key: 'pageSize',
+            label: 'Website Grootte',
+            value: `${benchmarks.pageSize.value} KB`,
+            data: benchmarks.pageSize,
+            explanation: 'Grootte beïnvloedt CO2 uitstoot en laadtijd'
+        });
+    }
+    
+    if (benchmarks.co2) {
+        benchmarkItems.push({
+            key: 'co2',
+            label: 'CO2 Uitstoot',
+            value: `${benchmarks.co2.value}g`,
+            data: benchmarks.co2,
+            explanation: 'Direct gerelateerd aan milieu impact'
+        });
+    }
+    
+    if (benchmarks.performance) {
+        benchmarkItems.push({
+            key: 'performance',
+            label: 'Performance Score',
+            value: `${benchmarks.performance.value}/100`,
+            data: benchmarks.performance,
+            explanation: 'Gebruikerservaring en snelheid'
+        });
+    }
+    
+    if (benchmarks.httpRequests) {
+        benchmarkItems.push({
+            key: 'httpRequests',
+            label: 'HTTP Requests',
+            value: `${benchmarks.httpRequests.value}`,
+            data: benchmarks.httpRequests,
+            explanation: 'Meer requests = meer server belasting'
+        });
+    }
+    
+    return `
+        <div class="benchmark-section">
+            <h4>${Utils.icons.benchmarkIcon} Vergelijking met gemiddelde websites</h4>
+            <p class="benchmark-intro">Deze metrics tonen hoe jouw website presteert ten opzichte van het internet gemiddelde:</p>
+            
+            <div class="benchmark-grid">
+                ${benchmarkItems.map(item => `
+                    <div class="benchmark-item ${item.data.status}">
+                        <div class="benchmark-metric">
+                            <span class="benchmark-label">${item.label}</span>
+                            <span class="benchmark-value">
+                                ${getStatusIcon(item.data.status)} ${item.value}
+                            </span>
+                        </div>
+                        <div class="benchmark-comparison">
+                            <div class="benchmark-vs">
+                                vs gemiddeld ${item.key === 'pageSize' ? item.data.average + ' KB' : 
+                                             item.key === 'co2' ? item.data.average + 'g CO2' :
+                                             item.key === 'performance' ? item.data.average + '/100' :
+                                             item.data.average}
+                            </div>
+                            <div class="benchmark-message"><strong>${item.data.message}</strong></div>
+                            <div class="benchmark-explanation">${item.explanation}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Display analysis results with EDUCATIONAL CONTEXT
  * @param {Object} data - Analysis results
  */
 function displayResults(data) {
@@ -496,6 +652,8 @@ function displayResults(data) {
             <h3>${Utils.icons.bulletPoint} Analyse resultaten voor: ${Utils.sanitizeHTML(displayUrl)}</h3>
             
             ${generatePerformanceHeroHTML(data)}
+            
+            ${generateEducationalSectionHTML(data)}
             
             ${generateHostingStatusHTML(data.greenHosting)}
             
@@ -632,13 +790,165 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
+
+
+/**
+ * Generate Educational Information Section
+ * @param {Object} data - Analysis results
+ * @returns {string} HTML string
+ */
+function generateEducationalSectionHTML(data) {
+    const hasPerformanceSustainabilityGap = data.performanceScore >= 70 && data.benchmarks.co2.status === 'poor';
+    
+    return `
+        <div class="educational-info">
+            <h4>🤔 Performance vs Duurzaamheid: Wat is het verschil?</h4>
+            
+            <div class="comparison-grid">
+                <div class="comparison-item">
+                    <h5>📈 Performance Score</h5>
+                    <ul>
+                        <li><strong>Meet:</strong> Hoe snel content zichtbaar wordt</li>
+                        <li><strong>Focus:</strong> User Experience</li>
+                        <li><strong>Gebruikt:</strong> Core Web Vitals metrics</li>
+                        <li><strong>Voorbeeld:</strong> Pagina laadt in 2 seconden</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-item">
+                    <h5>🌍 CO2 Impact</h5>
+                    <ul>
+                        <li><strong>Meet:</strong> Data verbruik en energie</li>
+                        <li><strong>Focus:</strong> Milieu impact</li>
+                        <li><strong>Gebruikt:</strong> Bytes over het netwerk</li>
+                        <li><strong>Voorbeeld:</strong> 2MB data = meer CO2</li>
+                    </ul>
+                </div>
+            </div>
+            
+            ${hasPerformanceSustainabilityGap ? `
+                <div class="performance-sustainability-explanation">
+                    <h5>Waarom deze website snel is maar veel CO2 uitstoot:</h5>
+                    <ul>
+                        <li><strong>Snelle server:</strong> Content wordt snel geleverd aan je browser</li>
+                        <li><strong>Maar verbruikt veel data:</strong> ${Utils.formatBytes(data.transferSize * 1024)} wordt gedownload</li>
+                        <li><strong>Veel requests:</strong> ${data.httpRequests || 'Veel'} aparte bestanden worden opgehaald</li>
+                        <li><strong>Resultaat:</strong> Snel voor jou, maar toch zwaar voor het milieu</li>
+                    </ul>
+                </div>
+            ` : ''}
+            
+            <div class="key-takeaway">
+                <p><strong>${Utils.icons.bulletPoint} Belangrijk:</strong> Een hoge performance score betekent niet automatisch lage CO2 uitstoot. 
+                Ideaal is een website die <em>zowel</em> snel <em>als</em> duurzaam is!</p>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Generate benchmark section with better context
+ * @param {Object} benchmarks - Benchmark data
+ * @returns {string} HTML string
+ */
+function generateEnhancedBenchmarkHTML(benchmarks) {
+    if (!benchmarks) return '';
+    
+    const getStatusIcon = (status) => {
+        switch(status) {
+            case 'excellent': return Utils.icons.excellentIcon;
+            case 'good': return Utils.icons.goodIcon;
+            case 'average': return Utils.icons.averageIcon;
+            case 'poor': return Utils.icons.poorIcon;
+            default: return Utils.icons.bulletPoint;
+        }
+    };
+    
+    const benchmarkItems = [];
+    
+    // Always include these core benchmarks
+    if (benchmarks.pageSize) {
+        benchmarkItems.push({
+            key: 'pageSize',
+            label: 'Website Grootte',
+            value: `${benchmarks.pageSize.value} KB`,
+            data: benchmarks.pageSize,
+            explanation: 'Grootte beïnvloedt CO2 uitstoot en laadtijd'
+        });
+    }
+    
+    if (benchmarks.co2) {
+        benchmarkItems.push({
+            key: 'co2',
+            label: 'CO2 Uitstoot',
+            value: `${benchmarks.co2.value}g`,
+            data: benchmarks.co2,
+            explanation: 'Direct gerelateerd aan milieu impact'
+        });
+    }
+    
+    if (benchmarks.performance) {
+        benchmarkItems.push({
+            key: 'performance',
+            label: 'Performance Score',
+            value: `${benchmarks.performance.value}/100`,
+            data: benchmarks.performance,
+            explanation: 'Gebruikerservaring en snelheid'
+        });
+    }
+    
+    if (benchmarks.httpRequests) {
+        benchmarkItems.push({
+            key: 'httpRequests',
+            label: 'HTTP Requests',
+            value: `${benchmarks.httpRequests.value}`,
+            data: benchmarks.httpRequests,
+            explanation: 'Meer requests = meer server belasting'
+        });
+    }
+    
+    return `
+        <div class="benchmark-section">
+            <h4>${Utils.icons.benchmarkIcon} Vergelijking met gemiddelde websites</h4>
+            <p class="benchmark-intro">Deze metrics tonen hoe jouw website presteert ten opzichte van het internet gemiddelde:</p>
+            
+            <div class="benchmark-grid">
+                ${benchmarkItems.map(item => `
+                    <div class="benchmark-item ${item.data.status}">
+                        <div class="benchmark-metric">
+                            <span class="benchmark-label">${item.label}</span>
+                            <span class="benchmark-value">
+                                ${getStatusIcon(item.data.status)} ${item.value}
+                            </span>
+                        </div>
+                        <div class="benchmark-comparison">
+                            <div class="benchmark-vs">
+                                vs gemiddeld ${item.key === 'pageSize' ? item.data.average + ' KB' : 
+                                             item.key === 'co2' ? item.data.average + 'g CO2' :
+                                             item.key === 'performance' ? item.data.average + '/100' :
+                                             item.data.average}
+                            </div>
+                            <div class="benchmark-message"><strong>${item.data.message}</strong></div>
+                            <div class="benchmark-explanation">${item.explanation}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+
+
+
+
 // DEVELOPMENT ONLY - Auto-load test data
 const TEST_DATA = {
     url: "https://example.com",
     co2PerVisit: 2.5,
     transferSize: 1500,
     performanceScore: 78,
-    grade: "F",
+    grade: "A+",
     domElements: 1200,
     httpRequests: 45,
     greenHosting: {

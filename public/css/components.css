@@ -104,6 +104,7 @@
 }
 
 /* PERFORMANCE HERO SECTION - MAIN FOCUS */
+/* PERFORMANCE HERO SECTION - MAIN FOCUS */
 .performance-hero {
     background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(254, 253, 199, 0.05));
     border: 2px solid var(--border-color);
@@ -122,9 +123,28 @@
 .grade-display {
     font-family: var(--font-body);
     font-size: 4rem;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1;
     margin-bottom: var(--spacing-xs);
+    position: relative;
+    display: inline-block;
+}
+
+.grade-display .grade-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    z-index: -1;
+    opacity: 0.8;
+}
+
+.grade-display .grade-letter {
+    position: relative;
+    z-index: 1;
+   color: var(--text-color);
 }
 
 .score-display {
@@ -145,6 +165,70 @@
     font-size: 1.5rem;
     color: var(--text-muted);
     font-weight: 400;
+}
+
+/* Score Bar */
+.score-bar-container {
+    margin: var(--spacing-md) 0;
+    padding: 0 var(--spacing-lg);
+}
+
+.score-bar {
+    position: relative;
+    height: 8px;
+    background: linear-gradient(to right, 
+        #4CAF50 0%,      /* A+ */
+        #8BC34A 14.3%,   /* A */
+        #CDDC39 28.6%,   /* B */
+        #FFEB3B 42.9%,   /* C */
+        #FF9800 57.2%,   /* D */
+        #FF5722 71.5%,   /* E */
+        #990a0a 85.8%    /* F */
+    );
+    border-radius: 4px;
+    margin: var(--spacing-sm) 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.score-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.score-marker {
+    position: absolute;
+    top: -8px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 12px solid var(--text-color);
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.score-marker::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -4px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 8px solid var(--background-color);
+}
+
+.score-indicator-text {
+    text-align: center;
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-small);
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 .performance-subtitle {
@@ -345,7 +429,7 @@
     font-style: italic;
 }
 
-.impact-note small .bullet-icon{
+:is(.impact-note, .key-takeaway) .bullet-icon {
     max-width: 12px;
 }
 
@@ -397,6 +481,7 @@
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
     transition: var(--transition);
+    width: 100%;
 }
 
 .metric-item:hover {
@@ -725,18 +810,6 @@
     justify-content: center;
 }
 
-.climate-tip::before {
-    content: '';
-    position: absolute;
-    left: var(--spacing-sm);
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 20px;
-    background: var(--accent-green);
-    border-radius: 2px;
-    opacity: 0.7;
-}
 
 .tip-text {
     color: var(--text-color);
@@ -774,6 +847,168 @@
     background: rgba(102, 187, 106, 0.15);
     border-color: rgba(102, 187, 106, 0.4);
 }
+
+/* Performance vs Sustainability Explanation Styles */
+.score-explanation {
+    background: rgba(254, 253, 199, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm);
+    margin: var(--spacing-md) var(--spacing-md);
+    text-align: left;
+}
+
+.score-explanation h4 {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-base);
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.score-explanation p {
+    margin: 0;
+    font-size: var(--font-size-small);
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.sustainability-score {
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    text-align: left;
+}
+
+.sustainability-score h4 {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-base);
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.sustainability-score p {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-small);
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.dual-metrics {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    justify-content: stretch;
+}
+
+.dual-metrics .metric-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-small);
+    color: var(--text-color);
+}
+
+/* Contradiction Notice */
+.contradiction-notice {
+    background: linear-gradient(135deg, rgba(255, 183, 77, 0.1), rgba(255, 152, 0, 0.05));
+    border: 2px solid var(--warning-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+    text-align: left;
+}
+
+.contradiction-notice h5 {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-base);
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+.contradiction-notice p {
+    margin: 0;
+    font-size: var(--font-size-small);
+    color: var(--text-color);
+    line-height: 1.5;
+}
+
+/* Educational Info Box */
+.educational-info {
+    background: rgba(254, 253, 199, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-large);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+}
+
+.educational-info h4 {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: var(--font-size-large);
+    color: var(--text-color);
+    font-weight: 500;
+    text-align: center;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+}
+
+.comparison-item {
+    background: rgba(254, 253, 199, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+}
+
+.comparison-item h5 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-base);
+    color: var(--text-color);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.comparison-item ul {
+    margin: 0;
+    padding-left: var(--spacing-md);
+    color: var(--text-muted);
+    font-size: var(--font-size-small);
+    line-height: 1.5;
+}
+
+.comparison-item li {
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .dual-metrics {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .comparison-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .score-explanation,
+    .sustainability-score,
+    .contradiction-notice {
+        padding: var(--spacing-sm);
+        text-align: center;
+    }
+}
+
+
 
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
@@ -991,6 +1226,7 @@
     
     .grade-display {
         font-size: 3rem;
+        padding: var(--spacing-sm);
     }
     
     .score-number {
