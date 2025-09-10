@@ -4,11 +4,21 @@
   "description": "Website CO2 uitstoot analyzer tool",
   "main": "index.js",
   "scripts": {
-    "build": "echo 'No build step required'",
-    "serve": "node index.js",
-    "start": "node index.js",
-    "dev": "node index.js"
+  "build": "npm ci && npm run build",
+  "serve": "node index.js",
+  "start": "npx pm2 start index.js --name CO2meter",
+  "stop": "npx pm2 stop CO2meter",
+  "restart": "npx pm2 restart CO2meter",
+  "logs": "npx pm2 logs CO2meter",
+  "list": "npx pm2 list"
+
   },
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Diempje/website-CO2-meter"
+  },
+
   "dependencies": {
     "@tgwf/co2": "^0.15.0",
     "axios": "^1.6.0",
@@ -24,7 +34,7 @@
     "website-analysis",
     "green-web"
   ],
-  "author": "Jouw Naam",
+  "author": "Dimitri Dehouck",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^9.2.1"
