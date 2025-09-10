@@ -606,7 +606,7 @@
     transition: var(--transition);
     min-width: 160px;
     text-align: center;
-    flex: 1;
+    flex: 1
 }
 
 .share-btn {
@@ -994,6 +994,16 @@
 
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
+    
+    .input-group{
+        display: flex;
+        flex-direction: column;
+    }
+
+    .performance-sustainability-explanation, .input-group{
+        padding: var(--spacing-sm);
+    }
+    
     .enhanced-loading-state {
         padding: var(--spacing-lg) var(--spacing-sm);
         margin: var(--spacing-md) 0;
@@ -1022,6 +1032,41 @@
     .tip-text {
         font-size: var(--font-size-small);
         padding-left: var(--spacing-sm);
+    }
+
+     .result-card {
+        margin: 0 -16px; /* Negative margin om uit container te breken */
+    
+        border-left: none;
+        border-right: none;
+    }
+    
+    .performance-hero,
+    .benchmark-section,
+    .combined-impact-section,
+    .educational-info {
+        margin: 16px -24px; /* Breekt uit result-card */
+        padding: 20px 16px;
+        border-radius: 0;
+    }
+    
+    /* Behoud spacing voor tekst content */
+    .result-card h3,
+    .metrics-grid,
+    .hosting-status{
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+    
+    /* Main content container aanpassing */
+    .main-content {
+        padding: 0; /* Verwijder alle padding op mobile */
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    .container {
+        padding: 0; /* Full width op mobile */
     }
     
  
@@ -1056,6 +1101,13 @@
     .tip-text {
         font-size: var(--font-size-small);
         line-height: 1.4;
+    }
+
+     .performance-hero,
+    .benchmark-section,
+    .combined-impact-section {
+        margin: 12px -20px;
+        padding: 16px 12px;
     }
 }
 

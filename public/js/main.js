@@ -249,20 +249,10 @@ function validateURLInput() {
         urlInput.setAttribute('aria-invalid', 'true');
     }
 }
-
 /**
- * STAP 2: Hero Section Update - Van Performance naar Sustainability
- * 
- * VOORZICHTIGE AANPASSING van generatePerformanceHeroHTML() in main.js
- * - Behoudt ALLE styling en CSS classes
- * - Behoudt ALLE Utils.icons 
- * - Wijzigt ALLEEN data source (Performance → Sustainability)
- */
-
-/**
- * Generate ENHANCED Sustainability Hero HTML - BEHOUDT ALLE STYLING
+ * Generate ENHANCED Sustainability Hero HTML 
  * @param {Object} data - Analysis results met nieuwe sustainability score
- * @returns {string} HTML string - IDENTIEKE LAYOUT
+ * @returns {string} HTML string 
  */
 function generateSustainabilityHeroHTML(data) {
     // NIEUWE: Bereken sustainability score
@@ -281,7 +271,6 @@ function generateSustainabilityHeroHTML(data) {
     // NIEUWE: Check contradiction tussen sustainability en andere metrics
     const hasContradiction = (sustainabilityResult.sustainabilityScore >= 80 && co2Benchmark.status === 'poor') || 
                             (sustainabilityResult.sustainabilityScore >= 70 && data.transferSize > 2500);
-    
     return `
         <div class="performance-hero">
             <div class="performance-score-display">
@@ -321,7 +310,7 @@ function generateSustainabilityHeroHTML(data) {
                 </div>
                 ${hasContradiction ? `
                     <div class="contradiction-notice">
-                        <h5>⚖️ Let op: Sustainability vs Performance</h5>
+                        <h5>Let op: Sustainability vs Performance</h5>
                         <p>Deze website heeft een <strong>goede sustainability score</strong> maar verbruikt nog steeds <strong>veel data</strong>. 
                         Er zijn nog optimalisatie kansen!</p>
                     </div>
@@ -349,17 +338,11 @@ function generateSustainabilityHeroHTML(data) {
             
             </div>
         </div>
+        
     `;
+    
 }
 
-/**
- * STAP 2B: Update de main displayResults functie
- * 
- * MINIMALE WIJZIGING in main.js - vervang alleen de functie aanroep:
- * 
- * VAN: ${generatePerformanceHeroHTML(data)}
- * NAAR: ${generateSustainabilityHeroHTML(data)}
- */
 
 // Deze wijziging in main.js displayResults functie:
 function displayResults(data) {
@@ -829,7 +812,7 @@ function generateOptimizationTipsHTML(optimizations) {
     return `
         <div class="tip-box">
             <span class="tip-icon">${Utils.icons.upGraphIcon}</span>
-            <h6>Optimalisatie Kansen:</h6>
+            <h6>Wat kan er beter?</h6>
             <br>Je kan ${Utils.formatBytes(optimizations.canSave * 1024)} besparen door ongebruikte code te verwijderen!
             <br>Dit zou de CO2 uitstoot met ongeveer <strong>${co2Savings}g</strong> kunnen verminderen per bezoek.
             
@@ -1051,7 +1034,7 @@ const TEST_DATA = {
     url: "https://example.com",
     co2PerVisit: 2.5,
     transferSize: 1500,
-    performanceScore: 78,
+    performanceScore: 58,
     grade: "A+",
     domElements: 1200,
     httpRequests: 45,
