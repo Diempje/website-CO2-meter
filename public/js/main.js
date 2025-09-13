@@ -9,11 +9,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const prefilledUrl = urlParams.get('url');
     
     if (prefilledUrl) {
-        // Pre-fill the input field
-        document.getElementById('websiteUrl').value = prefilledUrl;
-        
-        // Auto-start analysis
-        analyzeWebsite();
+        const urlInput = DOM.get('websiteUrl');
+        if (urlInput) {
+            urlInput.value = prefilledUrl;
+            
+            
+            setTimeout(() => {
+                handleAnalyzeClick();
+            }, 500); 
+        }
     }
 });
 
