@@ -1,7 +1,21 @@
 /**
  * Main Application Logic - Website CO2 Meter COMPLETE OPTIMIZED
- * Jouw originele functies + performance optimalisaties + accessibility
  */
+
+/*Check voor URL parametern waneer er van diim.be gekomen wordt*/
+
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const prefilledUrl = urlParams.get('url');
+    
+    if (prefilledUrl) {
+        // Pre-fill the input field
+        document.getElementById('websiteUrl').value = prefilledUrl;
+        
+        // Auto-start analysis
+        analyzeWebsite();
+    }
+});
 
 // ENHANCED Application state with performance tracking
 const AppState = {
@@ -1033,20 +1047,20 @@ function scheduleTestDataLoad() {
 const TEST_DATA = {
     url: "https://example.com",
     co2PerVisit: 2.5,
-    transferSize: 1500,
-    performanceScore: 58,
+    transferSize: 15,
+    performanceScore: 99,
     grade: "A+",
-    domElements: 1200,
-    httpRequests: 45,
+    domElements: 15,
+    httpRequests: 3,
     greenHosting: {
         isGreen: true,
         provider: "Green Hosting Provider",
         impact: "Lagere CO2 impact door groene energie!"
     },
     optimizations: {
-        imageOptimizationScore: 0.85,
-        unusedCSS: 25,
-        unusedJS: 40,
+        imageOptimizationScore: 1,
+        unusedCSS: 0,
+        unusedJS: 0,
         canSave: 65
     },
     benchmarks: {

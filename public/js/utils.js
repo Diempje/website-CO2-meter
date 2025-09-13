@@ -226,7 +226,7 @@ const Utils = {
     },
 
     /**
-     * ENHANCED: Loading system with tip rotation - ORIGINAL styling preserved
+     * ENHANCED: Loading system with tip rotation
      */
     tipInterval: null,
 
@@ -235,7 +235,7 @@ const Utils = {
         
         const randomTip = this.climateTips[Math.floor(Math.random() * this.climateTips.length)];
         
-        // ORIGINAL loading HTML structure - NO styling changes
+        
         element.innerHTML = `
             <div class="enhanced-loading-state">
                 <div class="loading-animation">
