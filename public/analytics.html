@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytics Dashboard</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        .stat-box { display: inline-block; margin: 20px; padding: 20px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Website CO2 Analytics Dashboard</h1>
+    
+    <div id="overview"></div>
+    <div id="grades"></div>
+    <div id="hosting"></div>
+    
+    <script>
+        fetch('/api/stats')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('overview').innerHTML = `
+                    <div class="stat-box">
+                        <h3>Total Analyses</h3>
+                        <h2>${data.totalAnalyses}</h2>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Average Score</h3>
+                        <h2>${data.averageScore}/100</h2>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Average CO2</h3>
+                        <h2>${data.averageCO2}g</h2>
+                    </div>
+                    <div id="topDomains"></div> 
+                `;
+                
+                document.getElementById('grades').innerHTML = 
+                    '<h2>Grade Distribution:</h2>' +
+                    data.gradeDistribution.map(g => `${g.grade}: ${g.count} websites`).join('<br>');
+                    
+                document.getElementById('hosting').innerHTML = 
+                    '<h2>Hosting Types:</h2>' +
+                    data.hostingTypes.map(h => `${h.green_hosting ? 'Green' : 'Grey'}: ${h.count}`).join('<br>');
+
+                document.getElementById('topDomains').innerHTML = 
+                '<h2>Most Analyzed Websites:</h2>' +
+                data.topDomains.map(d => `${d.domain}: ${d.count} analyses`).join('<br>');
+            });
+    </script>
+</body>
+</html>

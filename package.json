@@ -4,26 +4,25 @@
   "description": "Website CO2 uitstoot analyzer tool",
   "main": "index.js",
   "scripts": {
-  "build": "npm ci && npm run build",
-  "serve": "node index.js",
-  "start": "npx pm2 start index.js --name CO2meter",
-  "stop": "npx pm2 stop CO2meter",
-  "restart": "npx pm2 restart CO2meter",
-  "logs": "npx pm2 logs CO2meter",
-  "list": "npx pm2 list"
-
+    "build": "npm ci && npm run build",
+    "serve": "node index.js",
+    "start": "npx pm2 start index.js --name CO2meter",
+    "stop": "npx pm2 stop CO2meter",
+    "restart": "npx pm2 restart CO2meter",
+    "logs": "npx pm2 logs CO2meter",
+    "list": "npx pm2 list"
   },
-
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Diempje/website-CO2-meter"
   },
-
   "dependencies": {
     "@tgwf/co2": "^0.15.0",
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "nodemailer": "^7.0.6",
+    "sqlite3": "^5.1.7"
   },
   "engines": {
     "node": ">=v22.19.0"

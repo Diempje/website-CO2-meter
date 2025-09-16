@@ -328,15 +328,15 @@ function generateSustainabilityHeroHTML(data) {
                 </div>
                 ${hasContradiction ? `
                     <div class="contradiction-notice">
-                        <h5>Let op: Sustainability vs Performance</h5>
-                        <p>Deze website heeft een <strong>goede sustainability score</strong> maar verbruikt nog steeds <strong>veel data</strong>. 
+                        <h5>Let op: Duurzaamhied vs Prestaties</h5>
+                        <p>Deze website heeft een <strong>goede duurzaamheid score</strong> maar verbruikt nog steeds <strong>veel data</strong>. 
                         Er zijn nog optimalisatie kansen!</p>
                     </div>
                 ` : ''}
                 
                 <div class="sustainability-score">
                     <h4>Duurzaamheidsfactoren</h4>
-                    <p><strong>Gebaseerd op:</strong> Data efficiency, groene hosting, resource gebruik</p>
+                    <p><strong>Gebaseerd op:</strong> Data efficiëntie, groene hosting, gebruik van bronnen</p>
                     <div class="dual-metrics">
                         <div class="metric-item">
                             ${Utils.icons.co2} <strong>${Utils.formatCO2(data.co2PerVisit)}</strong> per bezoek
@@ -362,7 +362,6 @@ function generateSustainabilityHeroHTML(data) {
 }
 
 
-// Deze wijziging in main.js displayResults functie:
 function displayResults(data) {
     const displayUrl = Utils.formatURLForDisplay(data.url);
     const resultsContainer = DOM.get('results');
@@ -378,6 +377,7 @@ function displayResults(data) {
             ${generateEnhancedBenchmarkHTML(data.benchmarks)}
             ${generateCombinedImpactCalculatorHTML(data.co2PerVisit, AppState.selectedVisitorScale)}
             ${generateOptimizationTipsHTML(data.optimizations)}
+            ${generateCTAFormHTML ? generateCTAFormHTML(data) : '<p>CTA functie niet gevonden</p>'}
             
             <div class="result-actions">
                 <button onclick="shareResults()" class="share-btn" aria-label="Deel analyse resultaten">
@@ -395,6 +395,259 @@ function displayResults(data) {
         Utils.scrollTo('.result-card', 100);
     }, 100);
 }
+
+
+/**
+ * Generate CTA Contact Form HTML
+ * @param {Object} data - Analysis results for personalization
+ * @returns {string} HTML string
+ */
+function generateCTAFormHTML(data) {
+    // Personalize CTA based on score
+    const { sustainabilityScore, grade } = SustainabilityScorer.calculateSustainabilityScore(data);
+    
+    let ctaMessage, ctaSubtitle;
+    
+    if (sustainabilityScore >= 80) {
+        ctaMessage = "Proficiat met je geweldige score!";
+        ctaSubtitle = "Neem contact met me op als je een uigebreid CO2 rapport wil van je website voor je B-corp of ESG rapportage.";
+    } else if (sustainabilityScore >= 60) {
+        ctaMessage = "Dat ziet er al goed uit, maar er zijn nog kansen!";
+        ctaSubtitle = "Ik kan je helpen om je score te verhogen. Heel vaak zijn er nog verbeteringen mogelijk.";
+    } else {
+        ctaMessage = "Veel verbeterpotentieel ontdekt!";
+        ctaSubtitle = "Je website kan veel duurzamer. Ik help je graag met een actieplan om je CO2-impact gevoelig te verlagen.";
+    }
+    
+    return `
+        <div class="cta-section">
+            <div class="cta-header">
+                <h4 class="cta-title"> ${ctaMessage}</h4>
+                <p class="cta-subtitle">${ctaSubtitle}</p>
+            </div>
+            
+            <form class="cta-form" id="ctaContactForm" onsubmit="handleCTASubmit(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ctaName" class="form-label">Naam *</label>
+                        <input 
+                            type="text" 
+                            id="ctaName" 
+                            name="name" 
+                            class="form-input" 
+                            placeholder="Je voornaam"
+                            required
+                            aria-label="Voornaam invoeren"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="ctaEmail" class="form-label">E-mail *</label>
+                        <input 
+                            type="email" 
+                            id="ctaEmail" 
+                            name="email" 
+                            class="form-input" 
+                            placeholder="naam@bedrijf.be"
+                            required
+                            aria-label="E-mailadres invoeren"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ctaCompany" class="form-label">Bedrijf</label>
+                    <input 
+                        type="text" 
+                        id="ctaCompany" 
+                        name="company" 
+                        class="form-input" 
+                        placeholder="Je bedrijfsnaam (optioneel)"
+                        aria-label="Bedrijfsnaam invoeren"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="ctaInterest" class="form-label">Waar ben je in geïnteresseerd? *</label>
+                    <select id="ctaInterest" name="interest" class="form-select" required aria-label="Type hulp selecteren">
+                        <option value="">Selecteer wat je nodig hebt...</option>
+                        <option value="score-improvement">Mijn score verbeteren (concrete tips)</option>
+                        <option value="Uitgebreide-website-audit">Uitgebreide website audit</option>
+                        <option value="bcorp-report">Duurzaamheidsrapport voor B-corp</option>
+                        <option value="ongoing-support">Doorlopende duurzaamheidsondersteuning</option>
+                        <option value="just-chat">Gewoon een vrijblijvend gesprek</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ctaMessage" class="form-label">Bericht (optioneel)</label>
+                    <textarea 
+                        id="ctaMessage" 
+                        name="message" 
+                        class="form-textarea" 
+                        placeholder="Vertel me kort over je situatie of doelen..."
+                        aria-label="Optioneel bericht invoeren"
+                    ></textarea>
+                </div>
+                
+                <!-- Hidden fields voor context -->
+                <input type="hidden" name="website_url" value="${data.url}">
+                <input type="hidden" name="current_score" value="${sustainabilityScore}">
+                <input type="hidden" name="current_grade" value="${grade}">
+                <input type="hidden" name="co2_per_visit" value="${data.co2PerVisit}">
+                
+                <button type="submit" class="cta-submit" id="ctaSubmitBtn">
+                    <span class="submit-text">Verzenden</span>
+                    <span class="submit-loading" style="display: none;">Versturen...</span>
+                </button>
+                
+                <div id="ctaFormMessage" class="form-message" style="display: none;"></div>
+            </form>
+            
+            <div class="cta-trust">
+                <div class="trust-items">
+                    <div class="trust-item">
+                     <span>Gratis advies</span>
+                    </div>
+                    <div class="trust-item">
+                       <span>Geen verplichtingen</span>
+                    </div>
+                    <div class="trust-item">
+                        <span>Binnen 24u reactie</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Handle CTA form submission
+ * @param {Event} event - Form submit event
+ */
+async function handleCTASubmit(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const submitBtn = document.getElementById('ctaSubmitBtn');
+    const messageDiv = document.getElementById('ctaFormMessage');
+    const submitText = submitBtn.querySelector('.submit-text');
+    const submitLoading = submitBtn.querySelector('.submit-loading');
+    
+    // Update submit button state
+    submitBtn.disabled = true;
+    submitText.style.display = 'none';
+    submitLoading.style.display = 'inline-flex';
+    messageDiv.style.display = 'none';
+    
+    try {
+        // Collect form data
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Validate required fields
+        if (!data.name || !data.email || !data.interest) {
+            throw new Error('Vul alle verplichte velden in');
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(data.email)) {
+            throw new Error('Vul een geldig e-mailadres in');
+        }
+        
+        // Send to your backend/service
+        await sendCTAContact(data);
+        
+        // Show success message
+        showCTAMessage('success', 'Bedankt! Je bericht is verstuurd. Ik neem binnen 24u contact met je op.');
+        
+        // Reset form
+        form.reset();
+        
+        // Track conversion (als je analytics hebt)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'cta_contact_submit', {
+                event_category: 'Lead Generation',
+                event_label: data.interest,
+                value: 1
+            });
+        }
+        
+    } catch (error) {
+        console.error('CTA Form Error:', error);
+        showCTAMessage('error', error.message || 'Er ging iets mis. Probeer het opnieuw.');
+    } finally {
+        // Reset submit button
+        submitBtn.disabled = false;
+        submitText.style.display = 'inline-flex';
+        submitLoading.style.display = 'none';
+    }
+}
+
+/**
+ * Send CTA contact data to backend/service
+ * @param {Object} data - Form data
+ */
+async function sendCTAContact(data) {
+    // Option 1: Send to your own backend
+    const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Server error');
+    }
+    
+    return response.json();
+    
+    // Option 2: Send to external service (Netlify Forms, Formspree, etc.)
+    // Uncomment and modify as needed:
+    /*
+    const response = await fetch('https://formspree.io/f/your-form-id', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+        throw new Error('Er ging iets mis bij het versturen');
+    }
+    */
+}
+
+/**
+ * Show CTA form message
+ * @param {string} type - 'success' or 'error'
+ * @param {string} message - Message to display
+ */
+function showCTAMessage(type, message) {
+    const messageDiv = document.getElementById('ctaFormMessage');
+    if (messageDiv) {
+        messageDiv.className = `form-message ${type}`;
+        messageDiv.textContent = message;
+        messageDiv.style.display = 'block';
+        
+        // Auto-hide success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Scroll message into view
+        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// Global function exports (needed for onclick handlers)
+window.handleCTASubmit = handleCTASubmit;
 
 /**
  * Generate ENHANCED Performance Hero HTML with clear explanation
@@ -486,7 +739,7 @@ function generateHostingStatusHTML(greenHosting) {
     return `
         <div class="hosting-status ${statusClass}">
             <h4>${statusIcon} ${statusTitle}</h4>
-            <p>Provider: ${Utils.sanitizeHTML(greenHosting.provider)}</p>
+            ${greenHosting.provider ? `<p>Provider: ${Utils.sanitizeHTML(greenHosting.provider)}</p>` : ''}
             <p>${Utils.sanitizeHTML(greenHosting.impact)}</p>
         </div>
     `;

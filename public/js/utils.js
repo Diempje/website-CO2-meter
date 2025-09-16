@@ -33,7 +33,7 @@ const Utils = {
         upGraphIcon: '<img src="/images/up_graph_icon.svg" alt="Verbetering" class="bullet-icon">'
     },
 
-    // ORIGINAL climate tips - EXACTLY as they were
+    // climate tips 
     climateTips: [
         "Wist je dat websites verantwoordelijk zijn voor 4% van de wereldwijde CO2 uitstoot?",
         "Een gemiddelde website produceert 4.6g CO2 per pageview",

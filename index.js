@@ -3,6 +3,25 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const co2 = require('@tgwf/co2');
+const nodemailer = require('nodemailer');
+const sqlite3 = require('sqlite3').verbose();
+
+
+const db = new sqlite3.Database('analytics.db');
+db.run(`CREATE TABLE IF NOT EXISTS analytics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    url TEXT,
+    domain TEXT,
+    score INTEGER,
+    grade TEXT,
+    co2_per_visit REAL,
+    transfer_size INTEGER,
+    green_hosting BOOLEAN,
+    http_requests INTEGER,
+    dom_elements INTEGER,
+    user_agent TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+)`);
 
 // Laad environment variables
 require('dotenv').config();
@@ -10,6 +29,29 @@ require('dotenv').config();
 // Maak een Express app (onze webserver)
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Email transporter setup - MOET VÓÓR de .verify() call!
+const emailTransporter = nodemailer.createTransport({
+    host: 'smtp-auth.mailprotect.be',
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+// Test email connection bij server start - MOET NA de transporter definitie!
+emailTransporter.verify((error, success) => {
+    if (error) {
+        console.log('❌ Email configuratie fout:', error);
+    } else {
+        console.log('✅ Email server ready');
+    }
+});
 
 // Middleware setup
 app.use(express.json()); // Voor JSON data van frontend
@@ -154,6 +196,53 @@ function calculateVisitorImpact(co2PerVisit) {
     });
 }
 
+// Helper functies - UPDATED GRADE SCALE
+function getGrade(score) {
+    if (score >= 90) return 'A+';
+    if (score >= 80) return 'A';
+    if (score >= 70) return 'B';
+    if (score >= 60) return 'C';
+    if (score >= 50) return 'D';
+    if (score >= 40) return 'E';
+    return 'F';
+}
+
+function getComparison(co2Grams) {
+    const kmDriving = (co2Grams / 404) * 1000; // 404g CO2 per km autorijden
+    return `${Math.round(kmDriving * 100) / 100}km autorijden`;
+}
+
+// ========================================
+// API ROUTES
+// ========================================
+
+app.get('/api/stats', (req, res) => {
+    db.get(`SELECT COUNT(*) as total, AVG(score) as avg_score, AVG(co2_per_visit) as avg_co2 FROM analytics`, 
+        (err, totals) => {
+            
+        db.all(`SELECT grade, COUNT(*) as count FROM analytics GROUP BY grade ORDER BY count DESC`, 
+            (err, grades) => {
+                
+            db.all(`SELECT green_hosting, COUNT(*) as count FROM analytics GROUP BY green_hosting`, 
+                (err, hosting) => {
+                    
+                db.all(`SELECT domain, COUNT(*) as count FROM analytics GROUP BY domain ORDER BY count DESC LIMIT 10`, 
+                    (err, domains) => {
+                        
+                    res.json({
+                        totalAnalyses: totals.total,
+                        averageScore: Math.round(totals.avg_score),
+                        averageCO2: Math.round(totals.avg_co2 * 100) / 100,
+                        gradeDistribution: grades,
+                        hostingTypes: hosting,
+                        topDomains: domains
+                    });
+                });
+            });
+        });
+    });
+});
+
 // API route voor website analyse
 app.post('/api/analyze', async (req, res) => {
     try {
@@ -180,7 +269,7 @@ app.post('/api/analyze', async (req, res) => {
         
         // Dan pas groene hosting checken (als backup als het faalt)
         let isGreenHosting = false;
-        let hostingProvider = 'Onbekend';
+        let hostingProvider = '';
         
         try {
             const domain = new URL(url).hostname;
@@ -197,7 +286,7 @@ app.post('/api/analyze', async (req, res) => {
             console.log('🌐 Green Web API Response:', hostingResponse.data);
             
             isGreenHosting = hostingResponse.data.green || false;
-            hostingProvider = hostingResponse.data.hosted_by || hostingResponse.data.hostedby || 'Onbekend';
+            hostingProvider = hostingResponse.data.hosted_by || hostingResponse.data.hostedby || '';
             
             console.log('🌱 Groene hosting:', isGreenHosting ? 'JA' : 'NEE');
             console.log('🏢 Hosting provider:', hostingProvider);
@@ -210,7 +299,7 @@ app.post('/api/analyze', async (req, res) => {
             const knownGreenProviders = [
                 'combell.com', 'combell.be', '.combell.', 'diim.be',
                 'vercel.app', 'netlify.app', 'github.io',
-                'localhost', '127.0.0.1'
+                'localhost', '127.0.0.1', 'webecoscan.be'
             ];
             
             const isKnownGreen = knownGreenProviders.some(provider => 
@@ -230,6 +319,10 @@ app.post('/api/analyze', async (req, res) => {
                     hostingProvider = 'Green hosting provider';
                 }
             }
+            else {
+                hostingProvider = ''; 
+                isGreenHosting = false; 
+                }
         }
         
         // Extracteer belangrijke metrics
@@ -308,14 +401,150 @@ app.post('/api/analyze', async (req, res) => {
             // VISITOR IMPACT DATA (NEW):
             visitorImpact: visitorImpact
         };
-        
-        res.json(result);
+        // Analytics opslaan
+           res.json(result);
+
+// Analytics opslaan zonder blocking
+        setTimeout(() => {
+            const domain = new URL(result.url).hostname;
+            const userAgent = req.headers['user-agent'] || 'Unknown';
+            
+            db.run(`INSERT INTO analytics (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [result.url, domain, result.performanceScore, result.grade, result.co2PerVisit, result.transferSize, result.greenHosting.isGreen, result.httpRequests, result.domElements, userAgent],
+                (err) => {
+                    if (err) console.log('❌ Analytics error:', err);
+                    else console.log('📊 Analytics saved:', domain);
+                }
+            );
+        }, 0);
         
     } catch (error) {
         console.error('❌ Fout bij analyse:', error.message);
         res.status(500).json({ 
             error: 'Er ging iets mis bij het analyseren van de website',
             details: error.message 
+        });
+    }
+});
+
+// Contact form endpoint
+app.post('/api/contact', async (req, res) => {
+    try {
+        const { 
+            name, 
+            email, 
+            company, 
+            interest, 
+            message, 
+            website_url, 
+            current_score,
+            current_grade,
+            co2_per_visit 
+        } = req.body;
+        
+        console.log('Nieuw contactformulier van:', name, '(', email, ')');
+        
+        // Email naar jou
+        const emailToYou = {
+            from: process.env.EMAIL_USER,
+            to: 'klopklop@diim.be', // Jouw email adres
+            subject: `CO2 Meter Contact: ${interest} - ${name}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #4CAF50;">Nieuwe CO2 Meter Contact</h2>
+                    
+                    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3>Contact Informatie</h3>
+                        <p><strong>Naam:</strong> ${name}</p>
+                        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+                        <p><strong>Bedrijf:</strong> ${company || 'Niet opgegeven'}</p>
+                        <p><strong>Interesse:</strong> ${interest}</p>
+                    </div>
+                    
+                    <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3>Website Analyse Context</h3>
+                        <p><strong>Website:</strong> <a href="${website_url}" target="_blank">${website_url}</a></p>
+                        <p><strong>Duurzaamheidsscore:</strong> ${current_score}/100 (${current_grade})</p>
+                        <p><strong>CO2 per bezoek:</strong> ${co2_per_visit}g</p>
+                    </div>
+                    
+                    ${message ? `
+                    <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3>Bericht van ${name}:</h3>
+                        <p style="white-space: pre-wrap;">${message}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p><strong>💡 Actie:</strong> Neem contact op binnen 24 uur via: <a href="mailto:${email}">${email}</a></p>
+                    </div>
+                    
+                    <hr style="margin: 30px 0;">
+                    <p style="color: #666; font-size: 12px;">
+                        Dit bericht werd verzonden via de Website CO2 Meter tool op ${new Date().toLocaleString('nl-BE')}<br>
+                        <a href="${website_url}">Bekijk de geanalyseerde website</a>
+                    </p>
+                </div>
+            `
+        };
+        
+        // Bevestigingsmail naar gebruiker
+        const emailToUser = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: `Bedankt voor je interesse in duurzame websites!`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #4CAF50;">Hallo ${name}!</h2>
+                    
+                    <p>Bedankt voor je interesse in het verbeteren van de duurzaamheid van <strong>${website_url}</strong>!</p>
+                    
+                    <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3>Je huidige resultaten:</h3>
+                        <p><strong>Duurzaamheidsscore:</strong> ${current_score}/100 (${current_grade})</p>
+                        <p><strong>CO2 per bezoek:</strong> ${co2_per_visit}g</p>
+                        <p><strong>Je interesse:</strong> ${interest}</p>
+                    </div>
+                    
+                    <p><strong>Wat gebeurt er nu?</strong></p>
+                    <ul>
+                        <li>Ik ga je website gedetailleerd bekijken</li>
+                        <li>Ik bereid concrete verbeterpunten voor</li>
+                        <li>Ik neem binnen 24 uur contact met je op</li>
+                    </ul>
+                    
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p><strong>Nog een tip:</strong> Heb je al naar je hosting provider gekeken? Groene hosting kan je CO2-impact met 60% verminderen!</p>
+                    </div>
+                    
+                    <p>Met groene groeten,<br>
+                    <strong>Dimitri Dehouck</strong><br>
+                    Website Duurzaamheids Expert<br>
+                    <a href="mailto:klopklop@diim.be">klopklop@diim.be</a></p>
+                    
+                    <hr style="margin: 30px 0;">
+                    <p style="color: #666; font-size: 12px;">
+                        Dit is een automatische bevestiging. Reageer gerust op deze email als je vragen hebt!
+                    </p>
+                </div>
+            `
+        };
+        
+        // Verstuur beide emails
+        await emailTransporter.sendMail(emailToYou);
+        await emailTransporter.sendMail(emailToUser);
+        
+        console.log('✅ Emails verzonden naar jou en', email);
+        
+        res.json({ 
+            success: true, 
+            message: 'Bericht verzonden! Je ontvangt een bevestiging per email.' 
+        });
+        
+    } catch (error) {
+        console.error('❌ Email verzend fout:', error);
+        res.status(500).json({ 
+            error: 'Er ging iets mis bij het versturen. Probeer opnieuw of neem direct contact op.' 
         });
     }
 });
@@ -334,27 +563,14 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/analytics', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'analytics.html'));
+});
+
 // Catch-all route voor SPA (Single Page Application) support
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
-// Helper functies
-// Helper functies - UPDATED GRADE SCALE
-function getGrade(score) {
-    if (score >= 90) return 'A+';
-    if (score >= 80) return 'A';
-    if (score >= 70) return 'B';
-    if (score >= 60) return 'C';
-    if (score >= 50) return 'D';
-    if (score >= 40) return 'E';
-    return 'F';
-}
-
-function getComparison(co2Grams) {
-    const kmDriving = (co2Grams / 404) * 1000; // 404g CO2 per km autorijden
-    return `${Math.round(kmDriving * 100) / 100}km autorijden`;
-}
 
 // Start de server
 app.listen(PORT, () => {
