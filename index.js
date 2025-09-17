@@ -6,9 +6,8 @@ const co2 = require('@tgwf/co2');
 const nodemailer = require('nodemailer');
 const { Pool } = require('pg');
 
-
-// VOEG DEZE REGELS TOE:
-const { Pool } = require('pg');
+// Laad environment variables
+require('dotenv').config();
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -27,8 +26,9 @@ pool.connect((err, client, release) => {
 
 
 
-// Laad environment variables
-require('dotenv').config();
+
+
+
 
 // Maak een Express app (onze webserver)
 const app = express();
@@ -614,3 +614,4 @@ app.listen(PORT, () => {
     console.log(`📁 Static files served from: ${path.join(__dirname, 'public')}`);
     console.log('💡 Druk Ctrl+C om te stoppen');
 });
+
