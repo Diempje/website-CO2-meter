@@ -247,7 +247,7 @@ app.get('/api/stats', async (req, res) => {
             GROUP BY green_hosting
         `);
         
-        // Top domains - DEZE QUERY MOET ER STAAN
+      
         const domainsResult = await pool.query(`
             SELECT domain, COUNT(*) as count 
             FROM analytics 
@@ -441,13 +441,16 @@ const insertAnalytics = async () => {
         const domain = new URL(result.url).hostname;
         const userAgent = req.headers['user-agent'] || 'Unknown';
         
+        // VOEG DEZE REGEL TOE: Bereken sustainability score
+        const sustainabilityResult = SustainabilityScorer.calculateSustainabilityScore(result);
+        
         await pool.query(`
             INSERT INTO analytics 
-            (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent, sustainability_score, sustainability_grade) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
             [result.url, domain, result.performanceScore, result.grade, result.co2PerVisit, 
              result.transferSize, result.greenHosting.isGreen, result.httpRequests, 
-             result.domElements, userAgent]
+             result.domElements, userAgent, sustainabilityResult.sustainabilityScore, sustainabilityResult.grade]
         );
         console.log('📊 Analytics saved:', domain);
     } catch (error) {
