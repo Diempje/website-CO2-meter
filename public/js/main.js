@@ -1164,16 +1164,16 @@ async function shareResults() {
         
         const shareText = `🌱 Website CO2 Analyse van ${AppState.currentResults.url}:
 
-📊 Performance Score: ${AppState.currentResults.performanceScore}/100 (${AppState.currentResults.grade})
-✅ CO2 uitstoot: ${Utils.formatCO2(AppState.currentResults.co2PerVisit)} per bezoek
-📁 Website grootte: ${Utils.formatBytes(AppState.currentResults.transferSize * 1024)}
+Performance Score: ${AppState.currentResults.performanceScore}/100 (${AppState.currentResults.grade})
+CO2 uitstoot: ${Utils.formatCO2(AppState.currentResults.co2PerVisit)} per bezoek
+Website grootte: ${Utils.formatBytes(AppState.currentResults.transferSize * 1024)}
 
-👥 Bij ${AppState.selectedVisitorScale.toLocaleString('nl-NL')} bezoekers/maand:
-🌍 ${Utils.formatCO2(yearlyCO2)} CO2 per jaar
-🌳 ${treesNeeded} bomen nodig voor compensatie
-🚗 ${kmDriving}km autorijden equivalent per maand
+Bij ${AppState.selectedVisitorScale.toLocaleString('nl-NL')} bezoekers/maand:
+${Utils.formatCO2(yearlyCO2)} CO2 per jaar
+${treesNeeded} bomen nodig voor compensatie
+${kmDriving}km autorijden equivalent per maand
 
-${AppState.currentResults.greenHosting.isGreen ? '🌱 Gebruikt groene hosting!' : '⚡ Gebruikt grijze hosting'}
+${AppState.currentResults.greenHosting.isGreen ? 'Gebruikt groene hosting!' : 'Gebruikt grijze hosting'}
 
 Geanalyseerd met: ${window.location.href}`;
         
@@ -1215,7 +1215,7 @@ function showShareFeedback(type) {
     const messages = {
         'shared': '✅ Succesvol gedeeld!',
         'copied': '✅ Gekopieerd naar klembord!',
-        'failed': '❌ Delen mislukt, probeer opnieuw'
+        'failed': '❌ Delen mislukt, probeer eens opnieuw'
     };
     
     const originalHTML = shareBtn.innerHTML;

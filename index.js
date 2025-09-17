@@ -4,24 +4,28 @@ const path = require('path');
 const axios = require('axios');
 const co2 = require('@tgwf/co2');
 const nodemailer = require('nodemailer');
-const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 
 
-const db = new sqlite3.Database('analytics.db');
-db.run(`CREATE TABLE IF NOT EXISTS analytics (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT,
-    domain TEXT,
-    score INTEGER,
-    grade TEXT,
-    co2_per_visit REAL,
-    transfer_size INTEGER,
-    green_hosting BOOLEAN,
-    http_requests INTEGER,
-    dom_elements INTEGER,
-    user_agent TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-)`);
+// VOEG DEZE REGELS TOE:
+const { Pool } = require('pg');
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Test database connectie
+pool.connect((err, client, release) => {
+    if (err) {
+        console.log('❌ Database connectie fout:', err);
+    } else {
+        console.log('✅ Database connected');
+        release();
+    }
+});
+
+
 
 // Laad environment variables
 require('dotenv').config();
@@ -216,32 +220,54 @@ function getComparison(co2Grams) {
 // API ROUTES
 // ========================================
 
-app.get('/api/stats', (req, res) => {
-    db.get(`SELECT COUNT(*) as total, AVG(score) as avg_score, AVG(co2_per_visit) as avg_co2 FROM analytics`, 
-        (err, totals) => {
-            
-        db.all(`SELECT grade, COUNT(*) as count FROM analytics GROUP BY grade ORDER BY count DESC`, 
-            (err, grades) => {
-                
-            db.all(`SELECT green_hosting, COUNT(*) as count FROM analytics GROUP BY green_hosting`, 
-                (err, hosting) => {
-                    
-                db.all(`SELECT domain, COUNT(*) as count FROM analytics GROUP BY domain ORDER BY count DESC LIMIT 10`, 
-                    (err, domains) => {
-                        
-                    res.json({
-                        totalAnalyses: totals.total,
-                        averageScore: Math.round(totals.avg_score),
-                        averageCO2: Math.round(totals.avg_co2 * 100) / 100,
-                        gradeDistribution: grades,
-                        hostingTypes: hosting,
-                        topDomains: domains
-                    });
-                });
-            });
+app.get('/api/stats', async (req, res) => {
+    try {
+        // Basis statistieken
+        const totalsResult = await pool.query(`
+            SELECT COUNT(*) as total, AVG(score) as avg_score, AVG(co2_per_visit) as avg_co2 
+            FROM analytics
+        `);
+        const totals = totalsResult.rows[0];
+        
+        // Grade verdeling
+        const gradesResult = await pool.query(`
+            SELECT grade, COUNT(*) as count 
+            FROM analytics 
+            GROUP BY grade 
+            ORDER BY count DESC
+        `);
+        
+        // Hosting types
+        const hostingResult = await pool.query(`
+            SELECT green_hosting, COUNT(*) as count 
+            FROM analytics 
+            GROUP BY green_hosting
+        `);
+        
+        // Top domains
+        const domainsResult = await pool.query(`
+            SELECT domain, COUNT(*) as count 
+            FROM analytics 
+            GROUP BY domain 
+            ORDER BY count DESC 
+            LIMIT 10
+        `);
+        
+        res.json({
+            totalAnalyses: parseInt(totals.total),
+            averageScore: Math.round(totals.avg_score || 0),
+            averageCO2: Math.round((totals.avg_co2 || 0) * 100) / 100,
+            gradeDistribution: gradesResult.rows,
+            hostingTypes: hostingResult.rows,
+            topDomains: domainsResult.rows
         });
-    });
+        
+    } catch (error) {
+        console.error('❌ Stats error:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
+
 
 // API route voor website analyse
 app.post('/api/analyze', async (req, res) => {
@@ -405,18 +431,28 @@ app.post('/api/analyze', async (req, res) => {
            res.json(result);
 
 // Analytics opslaan zonder blocking
-        setTimeout(() => {
-            const domain = new URL(result.url).hostname;
-            const userAgent = req.headers['user-agent'] || 'Unknown';
-            
-            db.run(`INSERT INTO analytics (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [result.url, domain, result.performanceScore, result.grade, result.co2PerVisit, result.transferSize, result.greenHosting.isGreen, result.httpRequests, result.domElements, userAgent],
-                (err) => {
-                    if (err) console.log('❌ Analytics error:', err);
-                    else console.log('📊 Analytics saved:', domain);
-                }
-            );
-        }, 0);
+        // Analytics opslaan (PostgreSQL versie)
+const insertAnalytics = async () => {
+    try {
+        const domain = new URL(result.url).hostname;
+        const userAgent = req.headers['user-agent'] || 'Unknown';
+        
+        await pool.query(`
+            INSERT INTO analytics 
+            (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [result.url, domain, result.performanceScore, result.grade, result.co2PerVisit, 
+             result.transferSize, result.greenHosting.isGreen, result.httpRequests, 
+             result.domElements, userAgent]
+        );
+        console.log('📊 Analytics saved:', domain);
+    } catch (error) {
+        console.log('❌ Analytics error:', error);
+    }
+};
+
+// Voer insert asynchroon uit
+insertAnalytics();
         
     } catch (error) {
         console.error('❌ Fout bij analyse:', error.message);
