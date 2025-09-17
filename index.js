@@ -224,7 +224,10 @@ app.get('/api/stats', async (req, res) => {
     try {
         // Basis statistieken
         const totalsResult = await pool.query(`
-            SELECT COUNT(*) as total, AVG(score) as avg_score, AVG(co2_per_visit) as avg_co2 
+            SELECT COUNT(*) as total, 
+                   AVG(score) as avg_performance_score, 
+                   AVG(sustainability_score) as avg_sustainability_score,
+                   AVG(co2_per_visit) as avg_co2 
             FROM analytics
         `);
         const totals = totalsResult.rows[0];
@@ -244,7 +247,7 @@ app.get('/api/stats', async (req, res) => {
             GROUP BY green_hosting
         `);
         
-        // Top domains
+        // Top domains - DEZE QUERY MOET ER STAAN
         const domainsResult = await pool.query(`
             SELECT domain, COUNT(*) as count 
             FROM analytics 
@@ -255,15 +258,16 @@ app.get('/api/stats', async (req, res) => {
         
         res.json({
             totalAnalyses: parseInt(totals.total),
-            averageScore: Math.round(totals.avg_score || 0),
+            averagePerformanceScore: Math.round(totals.avg_performance_score || 0),
+            averageSustainabilityScore: Math.round(totals.avg_sustainability_score || 0),
             averageCO2: Math.round((totals.avg_co2 || 0) * 100) / 100,
             gradeDistribution: gradesResult.rows,
             hostingTypes: hostingResult.rows,
-            topDomains: domainsResult.rows
+            topDomains: domainsResult.rows  // EN DIT MOET ER STAAN
         });
         
     } catch (error) {
-        console.error('❌ Stats error:', error);
+        console.error('Stats error:', error);
         res.status(500).json({ error: 'Database error' });
     }
 });
@@ -450,6 +454,26 @@ const insertAnalytics = async () => {
         console.log('❌ Analytics error:', error);
     }
 };
+
+app.post('/api/track-sustainability', async (req, res) => {
+    try {
+        const { url, sustainability_score, sustainability_grade } = req.body;
+        
+        await pool.query(`
+            UPDATE analytics 
+            SET sustainability_score = $1, sustainability_grade = $2 
+            WHERE url = $3 
+            ORDER BY timestamp DESC 
+            LIMIT 1`,
+            [sustainability_score, sustainability_grade, url]
+        );
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.log('Sustainability track error:', error);
+        res.json({ success: false });
+    }
+});
 
 // Voer insert asynchroon uit
 insertAnalytics();

@@ -361,6 +361,19 @@ function generateSustainabilityHeroHTML(data) {
     
 }
 
+const sustainabilityResult = SustainabilityScorer.calculateSustainabilityScore(data);
+
+// Stuur ook sustainability data naar backend
+fetch('/api/track-sustainability', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        url: data.url,
+        sustainability_score: sustainabilityResult.sustainabilityScore,
+        sustainability_grade: sustainabilityResult.grade
+    })
+});
+
 
 function displayResults(data) {
     const displayUrl = Utils.formatURLForDisplay(data.url);

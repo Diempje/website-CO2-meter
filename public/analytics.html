@@ -24,14 +24,17 @@
                         <h2>${data.totalAnalyses}</h2>
                     </div>
                     <div class="stat-box">
-                        <h3>Average Score</h3>
-                        <h2>${data.averageScore}/100</h2>
+                        <h3>Avg Sustainability Score</h3>
+                        <h2>${data.averageSustainabilityScore}/100</h2>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Avg Performance Score</h3>
+                        <h2>${data.averagePerformanceScore}/100</h2>
                     </div>
                     <div class="stat-box">
                         <h3>Average CO2</h3>
                         <h2>${data.averageCO2}g</h2>
                     </div>
-                    <div id="topDomains"></div> 
                 `;
                 
                 document.getElementById('grades').innerHTML = 
