@@ -65,7 +65,9 @@
     
     <script>
         // Laad gedetailleerde data
-        fetch('/api/detailed-stats')
+        const urlParams = new URLSearchParams(window.location.search);
+            const password = urlParams.get('p');
+            fetch(`/api/detailed-stats?p=${password}`)
             .then(r => r.json())
             .then(data => {
                 // Summary boxes

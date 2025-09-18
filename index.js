@@ -636,6 +636,13 @@ app.listen(PORT, () => {
 
 // Nieuwe route voor gedetailleerde analytics
 app.get('/api/detailed-stats', async (req, res) => {
+
+    const password = req.query.p;
+    
+    // Zelfde wachtwoord check
+    if (password !== process.env.ANALYTICS_PASSWORD && password !== 'jouw-geheim-wachtwoord') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
     try {
         const detailedResult = await pool.query(`
             SELECT DISTINCT ON (domain) 
@@ -670,13 +677,29 @@ app.get('/api/detailed-stats', async (req, res) => {
     }
 });
 
+
+// Vervang je huidige /analytics route door:
+app.get('/secret-dashboard-xyz123', (req, res) => {
+    const password = req.query.p;
+    
+    // Check wachtwoord
+    if (password !== process.env.ANALYTICS_PASSWORD) {
+        return res.status(401).send(`
+            <html>
+                <body style="font-family: Arial; text-align: center; margin-top: 100px;">
+                    <h2>Access Denied</h2>
+                    <p>Incorrect password</p>
+                </body>
+            </html>
+        `);
+    }
+    
+    res.sendFile(path.join(__dirname, 'public', 'analytics.html'));
+});
+
 // Hoofdpagina route - serve the HTML file
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/analytics', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'analytics.html'));
 });
 
 // Catch-all route voor SPA (Single Page Application) support
