@@ -681,14 +681,19 @@ app.get('/api/detailed-stats', async (req, res) => {
 // Vervang je huidige /analytics route door:
 app.get('/secret-dashboard-xyz123', (req, res) => {
     const password = req.query.p;
+
+    // DEBUG - verwijder na testen
+    console.log('Received password:', password);
+    console.log('Expected password:', process.env.ANALYTICS_PASSWORD);
+    console.log('Match:', password === process.env.ANALYTICS_PASSWORD);
     
     // Check wachtwoord
     if (password !== process.env.ANALYTICS_PASSWORD) {
         return res.status(401).send(`
             <html>
                 <body style="font-family: Arial; text-align: center; margin-top: 100px;">
-                    <h2>Access Denied</h2>
-                    <p>Incorrect password</p>
+                    <h2>Wat doe je hier?</h2>
+                    <p>Dit mocht je niet zien, keer terug van waar je gekomen bent</p>
                 </body>
             </html>
         `);
