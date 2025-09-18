@@ -640,7 +640,7 @@ app.get('/api/detailed-stats', async (req, res) => {
     const password = req.query.p;
     
     // Zelfde wachtwoord check
-    if (password !== process.env.ANALYTICS_PASSWORD && password !== 'jouw-geheim-wachtwoord') {
+    if (password !== process.env.ANALYTICS_PASSWORD) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
     try {
