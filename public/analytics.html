@@ -3,52 +3,136 @@
 <head>
     <title>Analytics Dashboard</title>
     <style>
-        body { font-family: Arial; margin: 40px; }
-        .stat-box { display: inline-block; margin: 20px; padding: 20px; border: 1px solid #ccc; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background: #f5f5f5;
+        }
+        .summary-box { 
+            display: inline-block; 
+            margin: 10px; 
+            padding: 20px; 
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .website-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .website-table th, .website-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .website-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .grade {
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+        }
+        .grade-A { background: #4CAF50; }
+        .grade-B { background: #8BC34A; }
+        .grade-C { background: #FFEB3B; color: black; }
+        .grade-D { background: #FF9800; }
+        .grade-E { background: #FF5722; }
+        .grade-F { background: #990a0a; }
+        .hosting-green { color: #4CAF50; font-weight: bold; }
+        .hosting-grey { color: #f44336; font-weight: bold; }
+        .website-url { 
+            max-width: 300px; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+        }
     </style>
 </head>
 <body>
     <h1>Website CO2 Analytics Dashboard</h1>
     
-    <div id="overview"></div>
-    <div id="grades"></div>
-    <div id="hosting"></div>
-    <div id="topDomains"></div>
+    <div id="summary"></div>
+    <div id="websiteList"></div>
     
     <script>
-        fetch('/api/stats')
+        // Laad gedetailleerde data
+        fetch('/api/detailed-stats')
             .then(r => r.json())
             .then(data => {
-                document.getElementById('overview').innerHTML = `
-                    <div class="stat-box">
+                // Summary boxes
+                document.getElementById('summary').innerHTML = `
+                    <div class="summary-box">
                         <h3>Total Analyses</h3>
-                        <h2>${data.totalAnalyses}</h2>
+                        <h2>${data.summary.total_analyses}</h2>
                     </div>
-                    <div class="stat-box">
-                        <h3>Avg Sustainability Score</h3>
-                        <h2>${data.averageSustainabilityScore}/100</h2>
+                    <div class="summary-box">
+                        <h3>Unique Websites</h3>
+                        <h2>${data.summary.unique_websites}</h2>
                     </div>
-                    <div class="stat-box">
-                        <h3>Avg Performance Score</h3>
-                        <h2>${data.averagePerformanceScore}/100</h2>
+                    <div class="summary-box">
+                        <h3>Avg CO2</h3>
+                        <h2>${data.summary.avg_co2 ? (Math.round(data.summary.avg_co2 * 1000) / 1000).toFixed(2) : 0}g</h2>
                     </div>
-                    <div class="stat-box">
-                        <h3>Average CO2</h3>
-                        <h2>${data.averageCO2}g</h2>
+                    <div class="summary-box">
+                        <h3>Avg Performance</h3>
+                        <h2>${Math.round(data.summary.avg_performance || 0)}/100</h2>
+                    </div>
+                    <div class="summary-box">
+                        <h3>Avg Sustainability</h3>
+                        <h2>${Math.round(data.summary.avg_sustainability || 0)}/100</h2>
                     </div>
                 `;
                 
-                document.getElementById('grades').innerHTML = 
-                    '<h2>Grade Distribution:</h2>' +
-                    data.gradeDistribution.map(g => `${g.grade}: ${g.count} websites`).join('<br>');
-                    
-                document.getElementById('hosting').innerHTML = 
-                    '<h2>Hosting Types:</h2>' +
-                    data.hostingTypes.map(h => `${h.green_hosting ? 'Green' : 'Grey'}: ${h.count}`).join('<br>');
-
-                document.getElementById('topDomains').innerHTML = 
-                '<h2>Most Analyzed Websites:</h2>' +
-                data.topDomains.map(d => `${d.domain}: ${d.count} analyses`).join('<br>');
+                // Website table
+                document.getElementById('websiteList').innerHTML = `
+                    <h2>All Analyzed Websites (${data.websites.length})</h2>
+                    <table class="website-table">
+                        <thead>
+                            <tr>
+                                <th>Website</th>
+                                <th>Performance</th>
+                                <th>CO2 per visit</th>
+                                <th>Size</th>
+                                <th>Hosting</th>
+                                <th>Last Analyzed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.websites.map(site => `
+                                <tr>
+                                    <td class="website-url" title="${site.url}">${site.domain}</td>
+                                    <td>
+                                        <span class="grade grade-${site.sustainability_grade || 'C'}">${site.sustainability_grade || 'C'}</span>
+                                        ${site.performance_score || 0}/100
+                                    </td>
+                                    <td>
+                                        <span class="grade grade-${site.sustainability_grade || 'C'}">${site.sustainability_grade || 'C'}</span>
+                                        ${site.sustainability_score || 0}/100
+                                    </td>
+                                    <td>${Math.round((site.co2_per_visit || 0) * 100) / 100}g</td>
+                                    <td>${Math.round((site.transfer_size || 0))}KB</td>
+                                    <td class="${site.green_hosting ? 'hosting-green' : 'hosting-grey'}">
+                                        ${site.green_hosting ? '🌱 Green' : '🏭 Grey'}
+                                    </td>
+                                    <td>${new Date(site.timestamp).toLocaleDateString('nl-NL')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                document.getElementById('summary').innerHTML = '<p>Error loading data</p>';
             });
     </script>
 </body>

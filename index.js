@@ -434,30 +434,31 @@ app.post('/api/analyze', async (req, res) => {
         // Analytics opslaan
            res.json(result);
 
-// Analytics opslaan zonder blocking
-        // Analytics opslaan (PostgreSQL versie)
+// Analytics opslaan (PostgreSQL versie)
+// Analytics opslaan (PostgreSQL versie)
 const insertAnalytics = async () => {
     try {
         const domain = new URL(result.url).hostname;
         const userAgent = req.headers['user-agent'] || 'Unknown';
         
-        // VOEG DEZE REGEL TOE: Bereken sustainability score
-        const sustainabilityResult = SustainabilityScorer.calculateSustainabilityScore(result);
+        // VERWIJDER DEZE REGEL:
+        // const sustainabilityResult = SustainabilityScorer.calculateSustainabilityScore(result);
         
         await pool.query(`
             INSERT INTO analytics 
-            (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent, sustainability_score, sustainability_grade) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+            (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
             [result.url, domain, result.performanceScore, result.grade, result.co2PerVisit, 
              result.transferSize, result.greenHosting.isGreen, result.httpRequests, 
-             result.domElements, userAgent, sustainabilityResult.sustainabilityScore, sustainabilityResult.grade]
+             result.domElements, userAgent]
         );
-        console.log('📊 Analytics saved:', domain);
+        console.log('Analytics saved:', domain);
     } catch (error) {
-        console.log('❌ Analytics error:', error);
+        console.log('Analytics error:', error);
     }
 };
 
+// Track sustainability score update
 app.post('/api/track-sustainability', async (req, res) => {
     try {
         const { url, sustainability_score, sustainability_grade } = req.body;
@@ -471,12 +472,15 @@ app.post('/api/track-sustainability', async (req, res) => {
             [sustainability_score, sustainability_grade, url]
         );
         
+        console.log('🌱 Sustainability score updated for:', url);
         res.json({ success: true });
+        
     } catch (error) {
-        console.log('Sustainability track error:', error);
-        res.json({ success: false });
+        console.log('❌ Sustainability track error:', error);
+        res.json({ success: false, error: error.message });
     }
 });
+
 
 // Voer insert asynchroon uit
 insertAnalytics();
@@ -621,6 +625,51 @@ app.get('/health', (req, res) => {
     });
 });
 
+
+
+// Start de server
+app.listen(PORT, () => {
+    console.log(`🚀 Website CO2 Meter draait op poort ${PORT}`);
+    console.log(`📁 Static files served from: ${path.join(__dirname, 'public')}`);
+    console.log('💡 Druk Ctrl+C om te stoppen');
+});
+
+// Nieuwe route voor gedetailleerde analytics
+app.get('/api/detailed-stats', async (req, res) => {
+    try {
+        const detailedResult = await pool.query(`
+            SELECT DISTINCT ON (domain) 
+                domain, 
+                url,
+                score as performance_score,
+                co2_per_visit,
+                transfer_size,
+                green_hosting,
+                timestamp
+            FROM analytics 
+            ORDER BY domain, timestamp DESC
+        `);
+        
+        const statsResult = await pool.query(`
+            SELECT 
+                COUNT(*) as total_analyses,
+                COUNT(DISTINCT domain) as unique_websites,
+                AVG(co2_per_visit) as avg_co2,
+                AVG(score) as avg_performance
+            FROM analytics
+        `);
+        
+        res.json({
+            websites: detailedResult.rows,
+            summary: statsResult.rows[0]
+        });
+        
+    } catch (error) {
+        console.error('Detailed stats error:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 // Hoofdpagina route - serve the HTML file
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -634,11 +683,3 @@ app.get('/analytics', (req, res) => {
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
-// Start de server
-app.listen(PORT, () => {
-    console.log(`🚀 Website CO2 Meter draait op poort ${PORT}`);
-    console.log(`📁 Static files served from: ${path.join(__dirname, 'public')}`);
-    console.log('💡 Druk Ctrl+C om te stoppen');
-});
-
