@@ -88,10 +88,10 @@ const BENCHMARK_DATA = {
         poor: 100
     },
     domElements: {
-        average: 1500, // gemiddeld aantal DOM elementen
-        excellent: 800,
-        good: 1200,
-        poor: 3000
+        average: 660, // gemiddeld aantal DOM elementen
+        excellent: 50,
+        good: 400,
+        poor: 800
     }
 };
 
