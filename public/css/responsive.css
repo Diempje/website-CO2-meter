@@ -468,13 +468,3 @@
     }
 }
 
-/* Dark Mode Support (future enhancement) */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background-color: #1a1a1a;
-        --card-background: #2d2d2d;
-        --text-color: #ffffff;
-        --text-muted: #cccccc;
-        --border-color: #444444;
-    }
-}
