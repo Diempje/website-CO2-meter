@@ -25,6 +25,83 @@ Repository: https://github.com/Diempje/website-CO2-meter
 
 ---
 
+## 🔄 Maintenance Guide for AI Assistants
+
+**IMPORTANT:** This CLAUDE.md file should be kept up-to-date when making significant changes to the codebase.
+
+### When to UPDATE CLAUDE.md:
+
+✅ **Architecture & Structure Changes:**
+- New directories or significant file reorganization
+- New modules or major refactoring
+- Changes to the module pattern or code organization
+
+✅ **API Changes:**
+- New API endpoints added to `index.js`
+- Modified endpoint signatures or response formats
+- New query parameters or request body fields
+- Changes to authentication or authorization
+
+✅ **Database Changes:**
+- New tables or columns in PostgreSQL schema
+- Changes to database connection setup
+- New Prisma migrations or schema updates
+- Modified data structures or relationships
+
+✅ **Configuration Changes:**
+- New environment variables in `.env`
+- New dependencies in `package.json`
+- Changes to `vercel.json` or deployment config
+- New external API integrations
+
+✅ **Feature Additions:**
+- New frontend components or pages
+- New scoring factors in sustainability algorithm
+- New benchmark data or calculation methods
+- New email templates or notification types
+
+✅ **Convention Changes:**
+- Updates to naming conventions
+- New code style guidelines
+- Changes to git workflow or branch strategy
+- New development commands or scripts
+
+### When NOT to update CLAUDE.md:
+
+❌ Small bugfixes without architectural impact
+❌ CSS styling tweaks or minor UI adjustments
+❌ Text/copy changes in HTML templates
+❌ Comment updates or documentation in code
+❌ Performance optimizations that don't change APIs
+❌ Minor refactoring within existing functions
+
+### How to Update:
+
+1. **Update the relevant section** - Don't rewrite the entire file
+2. **Update "Last Updated" date** at the top of the file
+3. **Be specific** - Add exact line numbers, function names, file paths
+4. **Keep it concise** - This is a reference guide, not a tutorial
+5. **Commit separately** - Use commit message: "CLAUDE.md bijgewerkt: [wat je veranderde]"
+
+### Quick Section Reference:
+
+| Change Type | Update Section |
+|-------------|----------------|
+| New API endpoint | `🌐 API Documentation` |
+| Database schema | `🗄 Database Schema` |
+| New env variable | `🔐 Environment Variables` |
+| New dependency | `🛠 Technology Stack` |
+| File structure | `📁 Codebase Structure` |
+| Benchmark data | `📊 Benchmark Data` |
+| Scoring algorithm | `🎯 Sustainability Scoring Algorithm` |
+| Git workflow | `🔧 Development Workflows` |
+| Code conventions | `📏 Key Conventions` |
+| Security changes | `🛡️ Security Considerations` |
+
+**Tip:** When making significant changes, ask yourself: "Would another AI assistant need to know this to work effectively on this codebase?" If yes, update CLAUDE.md.
+
+---
+
 ## 🛠 Technology Stack
 
 ### Backend
