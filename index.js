@@ -463,12 +463,17 @@ app.post('/api/track-sustainability', async (req, res) => {
     try {
         const { url, sustainability_score, sustainability_grade } = req.body;
         
-        await pool.query(`
+         await pool.query(`
             UPDATE analytics 
-            SET sustainability_score = $1, sustainability_grade = $2 
-            WHERE url = $3 
-            ORDER BY timestamp DESC 
-            LIMIT 1`,
+            SET sustainability_score = $1, 
+                sustainability_grade = $2 
+            WHERE id = (
+                SELECT id 
+                FROM analytics 
+                WHERE url = $3 
+                ORDER BY timestamp DESC 
+                LIMIT 1
+            )`,
             [sustainability_score, sustainability_grade, url]
         );
         

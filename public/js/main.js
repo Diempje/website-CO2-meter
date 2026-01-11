@@ -367,7 +367,9 @@ function displayResults(data) {
     const displayUrl = Utils.formatURLForDisplay(data.url);
     const resultsContainer = DOM.get('results');
     const sustainabilityResult = SustainabilityScorer.calculateSustainabilityScore(data);
- 
+    trackSustainabilityScore(data.url, sustainabilityResult);
+     resultsContainer.innerHTML = `
+        <div class="result-card">`;
 
     resultsContainer.innerHTML = `
         <div class="result-card">
@@ -1331,6 +1333,36 @@ const TEST_DATA = {
         domElements: { value: 1200, average: 1500, status: 'good', percentage: 20, message: '20% minder elementen dan gemiddeld' }
     }
 };
+
+/**
+ * Track sustainability score to database
+ * @param {string} url - Website URL
+ * @param {Object} sustainabilityResult - Sustainability calculation result
+ */
+async function trackSustainabilityScore(url, sustainabilityResult) {
+    try {
+        const response = await fetch('/api/track-sustainability', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: url,
+                sustainability_score: sustainabilityResult.sustainabilityScore,
+                sustainability_grade: sustainabilityResult.grade
+            })
+        });
+        
+        if (response.ok) {
+            console.log('✅ Sustainability score tracked for:', url);
+        } else {
+            console.warn('⚠️ Sustainability tracking failed:', response.status);
+        }
+    } catch (error) {
+        // Silent fail - don't break the user experience if tracking fails
+        console.log('⚠️ Could not track sustainability score:', error.message);
+    }
+}
 
 // Global function exports (needed for onclick handlers)
 window.updateImpactCalculation = updateImpactCalculation;
