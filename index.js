@@ -431,71 +431,65 @@ app.post('/api/analyze', async (req, res) => {
             // VISITOR IMPACT DATA (NEW):
             visitorImpact: visitorImpact
         };
-        // Analytics opslaan
-           res.json(result);
+
+        res.json(result);
+
+        // Analytics opslaan (fire-and-forget, mag de response niet blokkeren)
+        insertAnalytics(result, req.headers['user-agent']);
+
+    } catch (error) {
+        console.error('❌ Fout bij analyse:', error.message);
+        res.status(500).json({
+            error: 'Er ging iets mis bij het analyseren van de website',
+            details: error.message
+        });
+    }
+});
 
 // Analytics opslaan (PostgreSQL versie)
-// Analytics opslaan (PostgreSQL versie)
-const insertAnalytics = async () => {
+async function insertAnalytics(result, userAgent) {
     try {
         const domain = new URL(result.url).hostname;
-        const userAgent = req.headers['user-agent'] || 'Unknown';
-        
-        // VERWIJDER DEZE REGEL:
-        // const sustainabilityResult = SustainabilityScorer.calculateSustainabilityScore(result);
-        
+
         await pool.query(`
-            INSERT INTO analytics 
-            (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent) 
+            INSERT INTO analytics
+            (url, domain, score, grade, co2_per_visit, transfer_size, green_hosting, http_requests, dom_elements, user_agent)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-            [result.url, domain, result.performanceScore, result.grade, result.co2PerVisit, 
-             result.transferSize, result.greenHosting.isGreen, result.httpRequests, 
-             result.domElements, userAgent]
+            [result.url, domain, result.performanceScore, result.grade, result.co2PerVisit,
+             result.transferSize, result.greenHosting.isGreen, result.httpRequests,
+             result.domElements, userAgent || 'Unknown']
         );
         console.log('Analytics saved:', domain);
     } catch (error) {
         console.log('Analytics error:', error);
     }
-};
+}
 
 // Track sustainability score update
 app.post('/api/track-sustainability', async (req, res) => {
     try {
         const { url, sustainability_score, sustainability_grade } = req.body;
-        
+
          await pool.query(`
-            UPDATE analytics 
-            SET sustainability_score = $1, 
-                sustainability_grade = $2 
+            UPDATE analytics
+            SET sustainability_score = $1,
+                sustainability_grade = $2
             WHERE id = (
-                SELECT id 
-                FROM analytics 
-                WHERE url = $3 
-                ORDER BY timestamp DESC 
+                SELECT id
+                FROM analytics
+                WHERE url = $3
+                ORDER BY timestamp DESC
                 LIMIT 1
             )`,
             [sustainability_score, sustainability_grade, url]
         );
-        
+
         console.log('🌱 Sustainability score updated for:', url);
         res.json({ success: true });
-        
+
     } catch (error) {
         console.log('❌ Sustainability track error:', error);
         res.json({ success: false, error: error.message });
-    }
-});
-
-
-// Voer insert asynchroon uit
-insertAnalytics();
-        
-    } catch (error) {
-        console.error('❌ Fout bij analyse:', error.message);
-        res.status(500).json({ 
-            error: 'Er ging iets mis bij het analyseren van de website',
-            details: error.message 
-        });
     }
 });
 
