@@ -216,6 +216,25 @@ function getComparison(co2Grams) {
     return `${Math.round(kmDriving * 100) / 100}km autorijden`;
 }
 
+// Google PageSpeed API is af en toe flaky (5xx) op bepaalde sites - retry voordat we opgeven
+async function fetchPageSpeedWithRetry(pageSpeedUrl, retries = 2, delayMs = 1500) {
+    for (let attempt = 1; attempt <= retries + 1; attempt++) {
+        try {
+            return await axios.get(pageSpeedUrl, { timeout: 45000 });
+        } catch (error) {
+            const status = error.response?.status;
+            const isRetryable = !status || status >= 500;
+
+            if (!isRetryable || attempt === retries + 1) {
+                throw error;
+            }
+
+            console.log(`⚠️ PageSpeed poging ${attempt} mislukt (status ${status || error.code}), retry over ${delayMs}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+    }
+}
+
 // ========================================
 // API ROUTES
 // ========================================
@@ -293,8 +312,8 @@ app.post('/api/analyze', async (req, res) => {
         
         console.log('🌐 PageSpeed URL:', pageSpeedUrl.replace(apiKey, 'HIDDEN_KEY'));
         
-        // Eerste: Google PageSpeed call (deze werkt)
-        const response = await axios.get(pageSpeedUrl);
+        // Eerste: Google PageSpeed call (met retry, want Google's API is soms flaky)
+        const response = await fetchPageSpeedWithRetry(pageSpeedUrl);
         const data = response.data;
         
         // Dan pas groene hosting checken (als backup als het faalt)
